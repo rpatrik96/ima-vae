@@ -1,0 +1,10 @@
+.idea
+venv
+run
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+__pycache__
+*/__pycache__/*
+wandb/*
+*.sif
+*.egg-info/*
