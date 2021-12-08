@@ -9,6 +9,7 @@ def weights_init(m):
     if isinstance(m, nn.Linear):
         nn.init.xavier_uniform_(m.weight.data)
 
+
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation, device, slope=.2):
         super().__init__()
@@ -51,7 +52,7 @@ class MLP(nn.Module):
 
 
 class Dist:
-    def __init__(self):                                                      
+    def __init__(self):
         pass
 
     def sample(self, *args):
@@ -62,7 +63,7 @@ class Dist:
 
 
 class Normal(Dist):
-    def __init__(self, device='cpu',diag=True):
+    def __init__(self, device='cpu', diag=True):
         super().__init__()
         self.device = device
         self.c = 2 * np.pi * torch.ones(1).to(self.device)
@@ -122,7 +123,8 @@ class Laplace(Dist):
 
 
 class iVAE(nn.Module):
-    def __init__(self, latent_dim, data_dim, aux_dim, n_layers, hidden_dim, activation, device, prior=None, decoder=None, encoder=None, slope=.2):
+    def __init__(self, latent_dim, data_dim, aux_dim, n_layers, hidden_dim, activation, device, prior=None,
+                 decoder=None, encoder=None, slope=.2):
         super().__init__()
 
         self.data_dim = data_dim
@@ -130,7 +132,7 @@ class iVAE(nn.Module):
         self.aux_dim = aux_dim
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
-        self.cholesky_factors = int((latent_dim*(latent_dim+1))/2)
+        self.cholesky_factors = int((latent_dim * (latent_dim + 1)) / 2)
         self.activation = activation
         self.slope = slope
 
@@ -160,7 +162,7 @@ class iVAE(nn.Module):
                      device=device)
 
         self.logv = MLP(data_dim + aux_dim, latent_dim, hidden_dim, n_layers, activation=activation, slope=slope,
-                          device=device)
+                        device=device)
 
         self.apply(weights_init)
 
@@ -192,4 +194,3 @@ class iVAE(nn.Module):
         log_pz_u = self.prior_dist.log_pdf(z, *prior_params)
 
         return (log_px_z + (log_pz_u - log_qz_xu)).mean(), z
-

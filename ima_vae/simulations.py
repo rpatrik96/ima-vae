@@ -1,8 +1,7 @@
 import argparse
-import os
-import pickle
-import torch
+
 from runners.simulation_runner import run_ivae_exp
+
 
 def parse_sim():
     parser = argparse.ArgumentParser(description='')
@@ -19,9 +18,7 @@ def parse_sim():
     parser.add_argument('--lr', type=float, default=1e-2, help='Learning rate')
     return parser.parse_args()
 
+
 if __name__ == '__main__':
     args = parse_sim()
     run_ivae_exp(args)
-
-
-

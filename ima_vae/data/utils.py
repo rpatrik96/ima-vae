@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 
 
@@ -18,4 +16,3 @@ def to_one_hot(x, m=None):
         xoh += [np.zeros((xi.size, int(m)), dtype=dtp)]
         xoh[i][np.arange(xi.size), xi.astype(np.int)] = 1
     return xoh
-

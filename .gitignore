@@ -8,3 +8,6 @@ __pycache__
 wandb/*
 *.sif
 *.egg-info/*
+
+# pytorch models
+*.pt
