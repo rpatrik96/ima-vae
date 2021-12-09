@@ -15,8 +15,8 @@ def IVAE_wrapper(X, U, S, X_val, U_val, S_val, n_layers, lr, max_iter, seed, bat
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load data
-    dset = ConditionalDataset(X.astype(np.float32), U.astype(np.float32), S.astype(np.float32), device)
-    dset_val = ConditionalDataset(X_val.astype(np.float32), U_val.astype(np.float32), S_val.astype(np.float32), device)
+    dset = ConditionalDataset(X.astype(np.float32), U.astype(np.float32), S.astype(np.float32))
+    dset_val = ConditionalDataset(X_val.astype(np.float32), U_val.astype(np.float32), S_val.astype(np.float32))
     train_loader = DataLoader(dset, shuffle=True, batch_size=batch_size)
     val_loader = DataLoader(dset_val, shuffle=True, batch_size=batch_size)
 

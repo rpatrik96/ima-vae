@@ -14,11 +14,10 @@ class ConditionalDataset(Dataset):
     used in `models.ivae.ivae_wrapper.IVAE_wrapper()`
     """
 
-    def __init__(self, X, Y, S, device='cpu'):
-        self.device = device
-        self.obs = torch.from_numpy(X)
-        self.labels = torch.from_numpy(Y)
-        self.sources = torch.from_numpy(S)
+    def __init__(self, obs, labels, sources):
+        self.obs = torch.from_numpy(obs)
+        self.labels = torch.from_numpy(labels)
+        self.sources = torch.from_numpy(sources)
         self.len = self.obs.shape[0]
         self.aux_dim = self.labels.shape[1]
         self.data_dim = self.obs.shape[1]
@@ -132,4 +131,4 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
     if one_hot_labels:
         labels = to_one_hot(labels)[0]
 
-    return observations, labels, sources
+    return observations.astype(np.float32), labels.astype(np.float32), sources.astype(np.float32)
