@@ -33,7 +33,7 @@ def run_ivae_exp(args):
     Y_tr, Y_v = np.split(y, [int(.8 * len(y))])
     S_tr, S_v = np.split(s, [int(.8 * len(s))])
 
-    IVAE_wrapper(X=X_tr, U=Y_tr, S=S_tr, Xv=X_v, Uv=Y_v, Sv=S_v, n_layers=args.n_layers,
+    IVAE_wrapper(X=X_tr, U=Y_tr, S=S_tr, X_val=X_v, U_val=Y_v, S_val=S_v, n_layers=args.n_layers,
                  lr=args.lr,
                  max_iter=args.n_iter,
                  seed=args.seed,

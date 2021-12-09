@@ -8,7 +8,7 @@ from ima_vae.data.data_generators import ConditionalDataset
 from .ivae_core import iVAE
 
 
-def IVAE_wrapper(X, U, S, Xv, Uv, Sv, n_layers, lr, max_iter, seed, batch_size, hidden_dim, activation,
+def IVAE_wrapper(X, U, S, X_val, U_val, S_val, n_layers, lr, max_iter, seed, batch_size, hidden_dim, activation,
                  ckpt_file='ivae_uncond.pt'):
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -16,9 +16,9 @@ def IVAE_wrapper(X, U, S, Xv, Uv, Sv, n_layers, lr, max_iter, seed, batch_size, 
 
     # load data
     dset = ConditionalDataset(X.astype(np.float32), U.astype(np.float32), S.astype(np.float32), device)
-    dset_v = ConditionalDataset(Xv.astype(np.float32), Uv.astype(np.float32), Sv.astype(np.float32), device)
+    dset_val = ConditionalDataset(X_val.astype(np.float32), U_val.astype(np.float32), S_val.astype(np.float32), device)
     train_loader = DataLoader(dset, shuffle=True, batch_size=batch_size)
-    val_loader = DataLoader(dset_v, shuffle=True, batch_size=batch_size)
+    val_loader = DataLoader(dset_val, shuffle=True, batch_size=batch_size)
 
     data_dim, latent_dim, aux_dim = dset.get_dims()
     N = len(dset)
@@ -44,11 +44,11 @@ def IVAE_wrapper(X, U, S, Xv, Uv, Sv, n_layers, lr, max_iter, seed, batch_size, 
     while it < max_iter:
         elbo_train = 0
         epoch = it // len(train_loader) + 1
-        for _, (x, u, s) in enumerate(train_loader):
+        for _, (obs, labels, sources) in enumerate(train_loader):
             it += 1
             optimizer.zero_grad()
-            x, u = x.to(device), u.to(device)
-            elbo, z_est = model.elbo(x, u)
+            obs, labels = obs.to(device), labels.to(device)
+            elbo, z_est = model.elbo(obs, labels)
             elbo.mul(-1).backward()
             optimizer.step()
             elbo_train += -elbo.item()
@@ -61,10 +61,10 @@ def IVAE_wrapper(X, U, S, Xv, Uv, Sv, n_layers, lr, max_iter, seed, batch_size, 
             estimated_factors = []
             model.eval()
             with torch.no_grad():
-                for _, (x, u, s) in enumerate(val_loader):
-                    x, u, s = x.to(device), u.to(device), s.to(device)
-                    _, z = model.elbo(x, u)
-                    true_factors.append(s.numpy())
+                for _, (obs, labels, sources) in enumerate(val_loader):
+                    obs, labels, sources = obs.to(device), labels.to(device), sources.to(device)
+                    _, z = model.elbo(obs, labels)
+                    true_factors.append(sources.numpy())
                     estimated_factors.append(z.cpu().numpy())
                 true = torch.from_numpy(np.concatenate(true_factors)).permute(1, 0).numpy()
                 estimated = torch.from_numpy(np.concatenate(estimated_factors)).permute(1, 0).numpy()

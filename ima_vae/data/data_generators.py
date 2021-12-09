@@ -16,19 +16,19 @@ class ConditionalDataset(Dataset):
 
     def __init__(self, X, Y, S, device='cpu'):
         self.device = device
-        self.x = torch.from_numpy(X)
-        self.y = torch.from_numpy(Y)
-        self.s = torch.from_numpy(S)
-        self.len = self.x.shape[0]
-        self.aux_dim = self.y.shape[1]
-        self.data_dim = self.x.shape[1]
+        self.obs = torch.from_numpy(X)
+        self.labels = torch.from_numpy(Y)
+        self.sources = torch.from_numpy(S)
+        self.len = self.obs.shape[0]
+        self.aux_dim = self.labels.shape[1]
+        self.data_dim = self.obs.shape[1]
         self.latent_dim = self.data_dim
 
     def __len__(self):
         return self.len
 
     def __getitem__(self, index):
-        return self.x[index], self.y[index], self.s[index]
+        return self.obs[index], self.labels[index], self.sources[index]
 
     def get_dims(self):
         return self.data_dim, self.latent_dim, self.aux_dim
@@ -85,13 +85,13 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
 
     # generate non-stationary data:
     Nobs = NsegmentObs * Nsegment  # total number of observations
-    Y = np.array([0] * Nobs)  # labels for each observation (populate below)
+    labels = np.array([0] * Nobs)  # labels for each observation (populate below)
 
     if source == 'Gaussian':
-        S = np.random.normal(0, 1, (Nobs, Ncomp))
+        sources = np.random.normal(0, 1, (Nobs, Ncomp))
     elif source == 'Laplace':
-        S = np.random.laplace(0, 1, (Nobs, Ncomp))
-    S = scale(S)
+        sources = np.random.laplace(0, 1, (Nobs, Ncomp))
+    sources = scale(sources)
 
     # get modulation parameters
     modMat = np.random.uniform(0.01, 3, (Ncomp, Nsegment))
@@ -99,37 +99,37 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
     # now we adjust the variance within each segment in a non-stationary manner
     for seg in range(Nsegment):
         segID = range(NsegmentObs * seg, NsegmentObs * (seg + 1))
-        S[segID, :] = np.multiply(S[segID, :], modMat[:, seg])
-        Y[segID] = seg
+        sources[segID, :] = np.multiply(sources[segID, :], modMat[:, seg])
+        labels[segID] = seg
 
-    X = np.copy(S)
+    observations = np.copy(sources)
 
     np.random.seed(seed)
 
     if mobius:
         moeb_params = np.load('moebius_transform_params.npy', allow_pickle=True).item()
         alpha = 1.0
-        A = ortho_group.rvs(Ncomp)
+        mixing_matrix = ortho_group.rvs(Ncomp)
         a = np.array(moeb_params['a'])
         b = np.zeros(2)
-        mixing_moebius = build_moebius_transform(alpha, A, a, b)
-        X = mixing_moebius(X)
+        mixing_moebius = build_moebius_transform(alpha, mixing_matrix, a, b)
+        observations = mixing_moebius(observations)
     else:
         for l in range(nlayers):
             if orthog:
-                A = ortho_group.rvs(Ncomp)
+                mixing_matrix = ortho_group.rvs(Ncomp)
             else:
-                A = generateUniformMat(Ncomp)
+                mixing_matrix = generateUniformMat(Ncomp)
 
             # Apply non-linearity
             if NonLin == 'lrelu':
-                X = leaky_ReLU(X, negSlope)
+                observations = leaky_ReLU(observations, negSlope)
             elif NonLin == 'sigmoid':
-                X = sigmoidAct(X)
+                observations = sigmoidAct(observations)
             # Apply mixing:
-            X = np.dot(X, A)
+            observations = np.dot(observations, mixing_matrix)
 
     if one_hot_labels:
-        Y = to_one_hot(Y)[0]
+        labels = to_one_hot(labels)[0]
 
-    return X, Y, S
+    return observations, labels, sources
