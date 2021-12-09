@@ -30,13 +30,13 @@ class IMAModule(pl.LightningModule):
         pass
 
     def training_step(self, batch, batch_idx):
-        pass
-        # x, y = batch
-        # x = x.view(x.size(0), -1)
-        # z = self.encoder(x)
-        # x_hat = self.decoder(z)
-        # loss = F.mse_loss(x_hat, x)
-        # return loss
+        obs, labels, sources = batch
+        elbo, z_est = self.model.elbo(obs, labels)
+        loss = elbo.mul(-1)
+
+        self.log("train_loss", loss)
+
+        return loss
 
     def configure_optimizers(self):
 
