@@ -39,7 +39,7 @@ test_tube_exp/
 tests/tests_tt_dir/
 tests/save_dir
 default/
-data/
+ima_vae/data/ima_data
 test_tube_logs/
 test_tube_data/
 datasets/
