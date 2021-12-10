@@ -5,3 +5,4 @@ setuptools~=57.0.0
 torch~=1.10.0
 sklearn~=0.0
 scikit-learn~=1.0.1
+wandb~=0.12.7

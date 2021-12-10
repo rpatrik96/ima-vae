@@ -1,4 +1,5 @@
 from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import WandbLogger
 
 from ima_vae.data.datamodules import IMADataModule
 from ima_vae.runners.lightning_runner import IMAModule
@@ -12,8 +13,10 @@ def test_ima_args(args):
     pass
 
 
-def test_training(args):
+def test_training_with_wandb_logging(args):
     args.fast_dev_run = True
+    args.logger = WandbLogger(project="test", entity="ima-vae", offline=True)
+
     dict_args = vars(args)
 
     # init the trainer like this
