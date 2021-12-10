@@ -4,7 +4,14 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser(description='')
 
-    parser.add_argument('--n_iter', type=int, default=10e7, help='Maximum number of training iterations')
-    parser.add_argument("--seed", type=int, default=1, help="Seed for Random Number Generators")
 
-    return parser.parse_args()
+    # W and B
+    parser.add_argument('--use-wandb', action='store_true', help="Log with Weights&Biases")
+    parser.add_argument("--project", type=str, default="experiment",
+                        help="This is the name of the experiment on Weights and Biases")
+    parser.add_argument("--notes", type=str, default=None, help="Notes for the run on Weights and Biases")
+    parser.add_argument("--tags", type=str,
+                        nargs="*",  # 0 or more values expected => creates a list
+                        default=None, help="Tags for the run on Weights and Biases")
+
+    return parser

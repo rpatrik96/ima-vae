@@ -1,10 +1,10 @@
 from argparse import ArgumentParser
 
 import pytest
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 
 from ima_vae.data.datamodules import IMADataModule
-from ima_vae.runners.lightning_runner import IMAModule
+from ima_vae.runners.runner import IMAModule
 
 
 @pytest.fixture(autouse=True)
@@ -18,4 +18,8 @@ def args():
     # ie: now --gpus --num_nodes ... --fast_dev_run all work in the cli
     parser = Trainer.add_argparse_args(parser)
     args = parser.parse_args([])
+
+    # seed
+    seed_everything(args.seed)
+
     return args

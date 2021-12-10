@@ -2,7 +2,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 
 from ima_vae.data.datamodules import IMADataModule
-from ima_vae.runners.lightning_runner import IMAModule
+from ima_vae.runners.runner import IMAModule
 
 
 def test_ima_args(args):
