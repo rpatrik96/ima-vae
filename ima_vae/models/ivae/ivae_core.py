@@ -1,8 +1,12 @@
+from typing import Literal
+
 import numpy as np
 import torch
 from torch import distributions as dist
 from torch import nn
 from torch.nn import functional as F
+
+ActivationType = Literal['lrelu', 'sigmoid', 'none']
 
 
 def weights_init(m):
@@ -11,7 +15,7 @@ def weights_init(m):
 
 
 class MLP(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation, device, slope=.2):
+    def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation: ActivationType, device, slope=.2):
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -123,13 +127,13 @@ class Laplace(Dist):
 
 
 class iVAE(nn.Module):
-    def __init__(self, latent_dim, data_dim, aux_dim, n_layers, hidden_dim, activation, device, prior=None,
+    def __init__(self, latent_dim, data_dim, n_segments, n_layers, hidden_dim, activation, device, prior=None,
                  decoder=None, encoder=None, slope=.2):
         super().__init__()
 
         self.data_dim = data_dim
         self.latent_dim = latent_dim
-        self.aux_dim = aux_dim
+        self.n_segments = n_segments
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
         self.cholesky_factors = int((latent_dim * (latent_dim + 1)) / 2)
@@ -153,15 +157,15 @@ class iVAE(nn.Module):
 
         # prior_params
         self.prior_mean = torch.zeros(1).to(device)
-        self.logl = MLP(aux_dim, latent_dim, hidden_dim, n_layers, activation=activation, slope=slope, device=device)
+        self.logl = MLP(n_segments, latent_dim, hidden_dim, n_layers, activation=activation, slope=slope, device=device)
         # decoder params
         self.f = MLP(latent_dim, data_dim, hidden_dim, n_layers, activation=activation, slope=slope, device=device)
         self.decoder_var = .01 * torch.ones(1).to(device)
         # encoder params
-        self.g = MLP(data_dim + aux_dim, latent_dim, hidden_dim, n_layers, activation=activation, slope=slope,
+        self.g = MLP(data_dim + n_segments, latent_dim, hidden_dim, n_layers, activation=activation, slope=slope,
                      device=device)
 
-        self.logv = MLP(data_dim + aux_dim, latent_dim, hidden_dim, n_layers, activation=activation, slope=slope,
+        self.logv = MLP(data_dim + n_segments, latent_dim, hidden_dim, n_layers, activation=activation, slope=slope,
                         device=device)
 
         self.apply(weights_init)

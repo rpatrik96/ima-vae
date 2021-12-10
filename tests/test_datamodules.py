@@ -1,14 +1,9 @@
-from argparse import ArgumentParser
-
 import torch
 
 from ima_vae.data.datamodules import IMADataModule
 
 
-def test_ima_data_dims():
-    parser = ArgumentParser(add_help=False)
-    parser = IMADataModule.add_argparse_args(parser)
-    args = parser.parse_args([])
+def test_ima_data_dims(args):
     module = IMADataModule.from_argparse_args(args)
 
     module.setup()

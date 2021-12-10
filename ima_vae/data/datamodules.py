@@ -11,7 +11,7 @@ from ima_vae.data.data_generators import gen_data
 class IMADataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str = "path/to/dir", batch_size: int = 64, orthog: bool = False, mobius: bool = False,
                  linear: bool = False, latent_dim: int = 2, n_segments: int = 40, n_layers: int = 1, n_obs: int = 60e3,
-                 seed: int = 1, train_ratio: float = .7, val_ratio: float = 0.2):
+                 seed: int = 1, train_ratio: float = .7, val_ratio: float = 0.2, **kwargs):
         super().__init__()
 
         self.save_hyperparameters()

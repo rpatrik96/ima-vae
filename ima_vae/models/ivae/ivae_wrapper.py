@@ -27,7 +27,7 @@ def IVAE_wrapper(X, U, S, X_val, U_val, S_val, n_layers, lr, max_iter, seed, bat
     # define model and optimizer
     model = iVAE(latent_dim=latent_dim,
                  data_dim=data_dim,
-                 aux_dim=aux_dim,
+                 n_segments=aux_dim,
                  n_layers=n_layers,
                  hidden_dim=hidden_dim,
                  activation=activation,
