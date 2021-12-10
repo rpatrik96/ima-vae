@@ -26,7 +26,7 @@ The goal of this seed is to structure ML paper-code the same so that work can ea
 ARXIV   
 [![Paper](http://img.shields.io/badge/arxiv-math.co:1480.1111-B31B1B.svg)](https://www.nature.com/articles/nature14539)
 -->
-![CI testing](https://github.com/rpatrik96/ima_vae/workflows/CI%20testing/badge.svg?branch=master&event=push)
+![CI testing](https://github.com/rpatrik96/ima-vae/workflows/CI%20testing/badge.svg?branch=master&event=push)
 
 
 <!--  
