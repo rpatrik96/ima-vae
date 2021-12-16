@@ -13,7 +13,7 @@ from typing import get_args
 class IMAModule(pl.LightningModule):
 
     def __init__(self, device: str, activation: ActivationType, latent_dim: int = 2, n_segments: int = 40,
-                 n_layers: int = 1, lr: float = 1e-4, **kwargs):
+                 n_layers: int = 3, lr: float = 1e-4, **kwargs):
         super().__init__()
 
         self.save_hyperparameters()
@@ -22,7 +22,7 @@ class IMAModule(pl.LightningModule):
                           data_dim=latent_dim,
                           n_segments=n_segments,
                           n_layers=n_layers,
-                          hidden_dim=latent_dim * 2,
+                          hidden_dim=latent_dim * 10,
                           activation=activation,
                           device=device)
 
@@ -32,16 +32,21 @@ class IMAModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, z_est = self.model.elbo(obs, labels)
+        elbo, z_est, rec_loss, kl_loss = self.model.elbo(obs, labels)
         loss = elbo.mul(-1)
 
-        self.log("train_loss", loss)
+        self.log_metrics(kl_loss, loss, rec_loss, "Metrics/train")
 
         return loss
 
+    def log_metrics(self, kl_loss, loss, rec_loss, panel_name):
+        self.log(f"{panel_name}/loss", loss)
+        self.log(f"{panel_name}/rec_loss", rec_loss)
+        self.log(f"{panel_name}/kl_loss", kl_loss)
+
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, estimated_factors = self.model.elbo(obs, labels)
+        elbo, estimated_factors, rec_loss, kl_loss  = self.model.elbo(obs, labels)
 
         mat, _, _ = ima_vae.metrics.mcc.correlation(sources.permute(1, 0).numpy(),
                                                     estimated_factors.permute(1, 0).numpy(), method='Pearson')
@@ -49,8 +54,11 @@ class IMAModule(pl.LightningModule):
 
         val_loss = elbo.mul(-1)
 
-        self.log("val_loss", val_loss),
-        self.log("mcc", mcc)
+
+        panel_name = "Metrics/val"
+        self.log_metrics(kl_loss, val_loss, rec_loss, panel_name)
+
+        self.log(f"{panel_name}/mcc", mcc)
 
         return val_loss
 

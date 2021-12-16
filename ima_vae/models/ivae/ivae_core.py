@@ -197,4 +197,4 @@ class iVAE(nn.Module):
         log_qz_xu = self.encoder_dist.log_pdf(z, g, v)
         log_pz_u = self.prior_dist.log_pdf(z, *prior_params)
 
-        return (log_px_z + (log_pz_u - log_qz_xu)).mean(), z
+        return (log_px_z + (log_pz_u - log_qz_xu)).mean(), z, log_px_z.mean(), (log_pz_u - log_qz_xu).mean()

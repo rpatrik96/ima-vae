@@ -1,3 +1,5 @@
+from os.path import dirname, abspath, join
+
 import numpy as np
 import torch
 from scipy.stats import ortho_group
@@ -105,13 +107,14 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
     np.random.seed(seed)
 
     if mobius:
-        from os.path import dirname, abspath, join
-        dir = join(dirname(dirname(dirname(abspath(__file__)))), "ima/out/cima_obj/5d/moeb/0_5/data/")
+
+        dir = join(dirname(dirname(dirname(abspath(__file__)))), f"ima/out/cima_obj/{Ncomp}d/moeb/0_5/data/")
+
         moeb_params = np.load(join(dir, 'moebius_transform_params.npy'), allow_pickle=True).item()
         alpha = 1.0
         mixing_matrix = ortho_group.rvs(Ncomp)
         a = np.array(moeb_params['a'])
-        b = np.zeros(2)
+        b = np.zeros(Ncomp)
         mixing_moebius, _ = build_moebius_transform(alpha, mixing_matrix, a, b)
         observations = mixing_moebius(observations)
     else:
@@ -132,8 +135,12 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
     if one_hot_labels:
         labels = to_one_hot(labels)[0]
 
-    return np.asarray(observations.astype(np.float32)), np.asarray(labels.astype(np.float32)), np.asarray(sources.astype(np.float32))
+    return np.asarray(observations.astype(np.float32)), np.asarray(labels.astype(np.float32)), np.asarray(
+        sources.astype(np.float32))
+
+
 import jax.numpy as jnp
+
 
 # taken from IMA repo
 def build_moebius_transform(alpha, A, a, b, epsilon=2):
@@ -145,12 +152,13 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
     A: an orthogonal matrix
     a, b: vectors in \RR^D (dimension of the data)
     '''
+
     def mixing_moebius_transform(x):
-        if epsilon==2:
-            frac = jnp.sum((x-a)**2) #is this correct?
-            frac = frac**(-1)
+        if epsilon == 2:
+            frac = jnp.sum((x - a) ** 2)  # is this correct?
+            frac = frac ** (-1)
         else:
-            diff = jnp.abs(x-a)
+            diff = jnp.abs(x - a)
 
             frac = 1.0
         return b + frac * alpha * (A @ (x - a).T).T
@@ -158,11 +166,11 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
     B = jnp.linalg.inv(A)
 
     def unmixing_moebius_transform(y):
-        numer = 1/alpha * (y - b)
-        if epsilon==2:
-            denom = jnp.sum((numer)**2)
+        numer = 1 / alpha * (y - b)
+        if epsilon == 2:
+            denom = jnp.sum((numer) ** 2)
         else:
             denom = 1.0
-        return a + 1.0/denom * B @ numer
+        return a + 1.0 / denom * B @ numer
 
     return mixing_moebius_transform, unmixing_moebius_transform
