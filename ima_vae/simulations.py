@@ -18,6 +18,8 @@ if __name__ == '__main__':
     parser = Trainer.add_argparse_args(parser)
     args = parser.parse_args()
 
+    args.mobius = True
+
     seed_everything(args.seed)
 
     if args.use_wandb:
@@ -30,6 +32,9 @@ if __name__ == '__main__':
 
     # init the model with all the key-value pairs
     model = IMAModule(**dict_args)
+
+    if args.use_wandb is True:
+        args.logger.watch(model, log="all", log_freq=250)
 
     # datamodule
     dm = IMADataModule.from_argparse_args(args)
