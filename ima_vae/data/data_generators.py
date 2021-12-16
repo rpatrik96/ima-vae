@@ -106,7 +106,7 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
 
     if mobius:
         from os.path import dirname, abspath, join
-        dir = join(dirname(dirname(dirname(abspath(__file__)))), "ima/out/cima_obj/2d/moeb/0_5/data/")
+        dir = join(dirname(dirname(dirname(abspath(__file__)))), "ima/out/cima_obj/5d/moeb/0_5/data/")
         moeb_params = np.load(join(dir, 'moebius_transform_params.npy'), allow_pickle=True).item()
         alpha = 1.0
         mixing_matrix = ortho_group.rvs(Ncomp)
