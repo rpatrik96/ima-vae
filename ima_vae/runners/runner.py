@@ -6,14 +6,17 @@ import ima_vae.metrics
 from ima_vae.models.ivae.ivae_core import ActivationType
 from ima_vae.models.ivae.ivae_core import iVAE
 
+# from disentanglement_lib.evaluation.metrics import mig, unsupervised_metrics, beta_vae, dci, factor_vae, irs, modularity_explicitness, unified_scores
+
+
 from typing import get_args
 
 
 
 class IMAModule(pl.LightningModule):
 
-    def __init__(self, device: str, activation: ActivationType, latent_dim: int = 2, n_segments: int = 40,
-                 n_layers: int = 3, lr: float = 1e-4, **kwargs):
+    def __init__(self, device: str, activation: ActivationType, latent_dim: int = 2, n_segments: int = 1,
+                 n_layers: int = 1, lr: float = 1e-4, **kwargs):
         super().__init__()
 
         self.save_hyperparameters()
@@ -33,16 +36,28 @@ class IMAModule(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         obs, labels, sources = batch
         elbo, z_est, rec_loss, kl_loss = self.model.elbo(obs, labels)
-        loss = elbo.mul(-1)
+        neg_elbo = elbo.mul(-1)
 
-        self.log_metrics(kl_loss, loss, rec_loss, "Metrics/train")
+        self.log_metrics(kl_loss, neg_elbo, rec_loss, "Metrics/train")
 
-        return loss
+        return neg_elbo
 
-    def log_metrics(self, kl_loss, loss, rec_loss, panel_name):
-        self.log(f"{panel_name}/loss", loss)
+    def log_metrics(self, kl_loss, neg_elbo, rec_loss, panel_name):
+        self.log(f"{panel_name}/neg_elbo", neg_elbo)
         self.log(f"{panel_name}/rec_loss", rec_loss)
         self.log(f"{panel_name}/kl_loss", kl_loss)
+
+    # def log_disentanglement_metrics(self):
+    #
+    #     mig.compute_mig()
+    #     unified_scores.compute_unified_scores()
+    #     unsupervised_metrics.unsupervised_metrics()
+    #     dci.compute_dci()
+    #     irs.compute_irs()
+    #     modularity_explicitness.compute_modularity_explicitness()
+    #     beta_vae.compute_beta_vae_sklearn()
+    #     factor_vae.compute_factor_vae()
+
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
@@ -52,15 +67,15 @@ class IMAModule(pl.LightningModule):
                                                     estimated_factors.permute(1, 0).numpy(), method='Pearson')
         mcc = np.mean(np.abs(np.diag(mat)))
 
-        val_loss = elbo.mul(-1)
+        neg_elbo = elbo.mul(-1)
 
 
         panel_name = "Metrics/val"
-        self.log_metrics(kl_loss, val_loss, rec_loss, panel_name)
+        self.log_metrics(kl_loss, neg_elbo, rec_loss, panel_name)
 
         self.log(f"{panel_name}/mcc", mcc)
 
-        return val_loss
+        return neg_elbo
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
