@@ -5,6 +5,7 @@ import torch
 import ima_vae.metrics
 from ima_vae.models.ivae.ivae_core import ActivationType
 from ima_vae.models.ivae.ivae_core import iVAE
+from ima.ima.metrics import amari_distance, jacobian_amari_distance
 
 # from disentanglement_lib.evaluation.metrics import mig, unsupervised_metrics, beta_vae, dci, factor_vae, irs, modularity_explicitness, unified_scores
 
@@ -74,6 +75,10 @@ class IMAModule(pl.LightningModule):
         self.log_metrics(kl_loss, neg_elbo, rec_loss, panel_name)
 
         self.log(f"{panel_name}/mcc", mcc)
+
+        # calculate Amari distance
+        # amari_distance()
+        # jacobian_amari_distance()
 
         return neg_elbo
 
