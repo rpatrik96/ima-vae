@@ -4,6 +4,7 @@ from jax import jacfwd
 from scipy.stats import ortho_group
 
 from ima_vae.data.data_generators import build_moebius_transform
+from ima_vae.runners.runner import cima_kl_diagonality
 
 
 def test_moebius_orthogonality(args):
@@ -21,4 +22,4 @@ def test_moebius_orthogonality(args):
 
     # as the jacobian should be column-orthogonal,
     # the Q matrix of the QR-decomposition should have a |det| = 1
-    assert abs(abs(jnp.linalg.det(q)) - 1) < 1e-5
+    assert cima_kl_diagonality(jacobian) < 1e-5
