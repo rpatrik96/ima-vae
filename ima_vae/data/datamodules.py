@@ -23,7 +23,7 @@ class IMADataModule(pl.LightningDataModule):
         # generate data
         n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 
-        obs, labels, sources = gen_data(Ncomp=self.hparams.latent_dim, Nlayer=self.hparams.n_layers,
+        obs, labels, sources, self.mixing, self.unmixing = gen_data(Ncomp=self.hparams.latent_dim, Nlayer=self.hparams.n_layers,
                                         Nsegment=self.hparams.n_segments, NsegmentObs=n_obs_per_seg,
                                         orthog=self.hparams.orthog, mobius=self.hparams.mobius, seed=self.hparams.seed,
                                         NonLin="none" if self.hparams.linear is True else 'lrelu')

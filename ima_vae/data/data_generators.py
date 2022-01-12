@@ -106,6 +106,9 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
 
     np.random.seed(seed)
 
+    mixing = None
+    unmixing = None
+
     if mobius:
 
         dir = join(dirname(dirname(dirname(abspath(__file__)))), f"ima/out/cima_obj/{Ncomp}d/moeb/0_5/data/")
@@ -115,8 +118,10 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
         mixing_matrix = ortho_group.rvs(Ncomp)
         a = np.array(moeb_params['a'])
         b = np.zeros(Ncomp)
-        mixing_moebius, _ = build_moebius_transform(alpha, mixing_matrix, a, b)
+        mixing_moebius, unmixing_moebius = build_moebius_transform(alpha, mixing_matrix, a, b)
         observations = mixing_moebius(observations)
+
+        mixing, unmixing = mixing_moebius, unmixing_moebius
     else:
         for l in range(nlayers):
             if orthog:
@@ -136,7 +141,7 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
         labels = to_one_hot(labels)[0]
 
     return np.asarray(observations.astype(np.float32)), np.asarray(labels.astype(np.float32)), np.asarray(
-        sources.astype(np.float32))
+        sources.astype(np.float32)), mixing, unmixing
 
 
 import jax.numpy as jnp
@@ -171,6 +176,6 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
             denom = jnp.sum((numer) ** 2)
         else:
             denom = 1.0
-        return a + 1.0 / denom * B @ numer
+        return a + 1.0 / denom * (B @ numer.T).T
 
     return mixing_moebius_transform, unmixing_moebius_transform

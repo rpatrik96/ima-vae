@@ -4,10 +4,12 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
 
 import ima_vae.metrics
+from ima.ima.metrics import jacobian_amari_distance
 from ima_vae.models.ivae.ivae_core import ActivationType
 from ima_vae.models.ivae.ivae_core import iVAE
 
@@ -17,7 +19,7 @@ from ima_vae.models.ivae.ivae_core import iVAE
 
 def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
     """
-    Calculate the Jacobian more efficiently than ` torch.autograd.functional.jacobian`
+    Calculate the Jacobian
     :param model: the model to calculate the Jacobian of
     :param latents: the inputs for evaluating the model
     :return: n_out x n_in
@@ -41,6 +43,8 @@ class IMAModule(pl.LightningModule):
     def __init__(self, device: str, activation: ActivationType, latent_dim: int = 2, n_segments: int = 1,
                  n_layers: int = 1, lr: float = 1e-4, **kwargs):
         super().__init__()
+
+        self.trainer
 
         self.save_hyperparameters()
 
@@ -92,10 +96,7 @@ class IMAModule(pl.LightningModule):
 
         self._mcc_calc_and_log(estimated_factors, sources, panel_name)
         self._cima_calc_and_log(obs, labels, panel_name)
-
-        # calculate Amari distance
-        # amari_distance()
-        # jacobian_amari_distance()
+        self._amari_dist_calc_and_log(obs, labels, panel_name)
 
         return neg_elbo
 
@@ -109,7 +110,7 @@ class IMAModule(pl.LightningModule):
         return mcc
 
     def _cima_calc_and_log(self, obs, labels, panel_name, log=True):
-        decoder_params, encoder_params, latent, prior_params = self.model(obs, labels)
+        decoder_params, _, latent, _ = self.model(obs, labels)
         jacobian = calc_jacobian(self.model.decoder, latent)
         cima = cima_kl_diagonality(jacobian)
 
@@ -117,6 +118,22 @@ class IMAModule(pl.LightningModule):
             self.log(f"{panel_name}/cima", cima)
 
         return cima
+
+    def _amari_dist_calc_and_log(self, obs, labels, panel_name, log=True):
+
+        decoder_params, _, latent, _ = self.model(obs, labels)
+
+        J = lambda xx: jnp.array(
+            jacobian(lambda x: self.model.decoder.forward(x).sum(dim=0), torch.Tensor(xx.tolist())).permute(1, 0, 2))
+
+        amari_dist = jacobian_amari_distance(jnp.array(obs), J, lambda x: jnp.stack(
+            [jacfwd(self.trainer.datamodule.mixing)(xx) for xx in x]),
+                                             self.trainer.datamodule.unmixing)
+
+        if log is True:
+            self.log(f"{panel_name}/amari_dist", amari_dist.tolist())
+
+        return amari_dist
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
