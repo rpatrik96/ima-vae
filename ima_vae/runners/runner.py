@@ -9,7 +9,7 @@ from jax import numpy as jnp
 from torch.autograd.functional import jacobian
 
 import ima_vae.metrics
-from ima.ima.metrics import jacobian_amari_distance
+from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
 from ima_vae.models.ivae.ivae_core import ActivationType
 from ima_vae.models.ivae.ivae_core import iVAE
 
@@ -65,11 +65,11 @@ class IMAModule(pl.LightningModule):
         elbo, z_est, rec_loss, kl_loss = self.model.elbo(obs, labels)
         neg_elbo = elbo.mul(-1)
 
-        self.log_metrics(kl_loss, neg_elbo, rec_loss, "Metrics/train")
+        self._log_metrics(kl_loss, neg_elbo, rec_loss, "Metrics/train")
 
         return neg_elbo
 
-    def log_metrics(self, kl_loss, neg_elbo, rec_loss, panel_name):
+    def _log_metrics(self, kl_loss, neg_elbo, rec_loss, panel_name):
         self.log(f"{panel_name}/neg_elbo", neg_elbo)
         self.log(f"{panel_name}/rec_loss", rec_loss)
         self.log(f"{panel_name}/kl_loss", kl_loss)
@@ -92,15 +92,16 @@ class IMAModule(pl.LightningModule):
         neg_elbo = elbo.mul(-1)
 
         panel_name = "Metrics/val"
-        self.log_metrics(kl_loss, neg_elbo, rec_loss, panel_name)
+        self._log_metrics(kl_loss, neg_elbo, rec_loss, panel_name)
 
-        self._mcc_calc_and_log(estimated_factors, sources, panel_name)
-        self._cima_calc_and_log(obs, labels, panel_name)
-        self._amari_dist_calc_and_log(obs, labels, panel_name)
+        self._log_mcc(estimated_factors, sources, panel_name)
+        self._log_cima(obs, labels, panel_name)
+        self._log_amari_dist(obs, labels, panel_name)
+        self._log_true_data_likelihood(obs, panel_name)
 
         return neg_elbo
 
-    def _mcc_calc_and_log(self, estimated_factors, sources, panel_name, log=True):
+    def _log_mcc(self, estimated_factors, sources, panel_name, log=True):
         mat, _, _ = ima_vae.metrics.mcc.correlation(sources.permute(1, 0).numpy(),
                                                     estimated_factors.permute(1, 0).numpy(), method='Pearson')
         mcc = np.mean(np.abs(np.diag(mat)))
@@ -109,17 +110,27 @@ class IMAModule(pl.LightningModule):
 
         return mcc
 
-    def _cima_calc_and_log(self, obs, labels, panel_name, log=True):
+    def _log_cima(self, obs, labels, panel_name, log=True):
         decoder_params, _, latent, _ = self.model(obs, labels)
-        jacobian = calc_jacobian(self.model.decoder, latent)
-        cima = cima_kl_diagonality(jacobian)
+        unmix_jacobian = calc_jacobian(self.model.decoder, latent)
+        cima = cima_kl_diagonality(unmix_jacobian)
 
         if log is True:
             self.log(f"{panel_name}/cima", cima)
 
         return cima
 
-    def _amari_dist_calc_and_log(self, obs, labels, panel_name, log=True):
+    def _log_true_data_likelihood(self, obs, panel_name, log=True):
+        #todo: setup the base_log_pdf
+        true_data_likelihood = observed_data_likelihood(obs, lambda x: jnp.stack(
+            [jacfwd(self.trainer.datamodule.unmixing)(jnp.array(xx)) for xx in x]))
+
+        if log is True:
+            self.log(f"{panel_name}/true_data_likelihood", true_data_likelihood)
+
+        return true_data_likelihood
+
+    def _log_amari_dist(self, obs, labels, panel_name, log=True):
 
         decoder_params, _, latent, _ = self.model(obs, labels)
 
