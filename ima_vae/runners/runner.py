@@ -44,8 +44,6 @@ class IMAModule(pl.LightningModule):
                  n_layers: int = 1, lr: float = 1e-4, **kwargs):
         super().__init__()
 
-        self.trainer
-
         self.save_hyperparameters()
 
         self.model: iVAE = iVAE(latent_dim=latent_dim,
@@ -62,17 +60,18 @@ class IMAModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, z_est, rec_loss, kl_loss = self.model.elbo(obs, labels)
+        elbo, z_est, rec_loss, kl_loss, latent_stat = self.model.elbo(obs, labels)
         neg_elbo = elbo.mul(-1)
 
-        self._log_metrics(kl_loss, neg_elbo, rec_loss, "Metrics/train")
+        self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, "Metrics/train")
 
         return neg_elbo
 
-    def _log_metrics(self, kl_loss, neg_elbo, rec_loss, panel_name):
+    def _log_metrics(self, kl_loss, neg_elbo, rec_loss, latent_stat, panel_name):
         self.log(f"{panel_name}/neg_elbo", neg_elbo)
         self.log(f"{panel_name}/rec_loss", rec_loss)
         self.log(f"{panel_name}/kl_loss", kl_loss)
+        self.log(f"{panel_name}/latent_statistics", latent_stat)
 
     # def log_disentanglement_metrics(self):
     #
@@ -87,12 +86,12 @@ class IMAModule(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, estimated_factors, rec_loss, kl_loss = self.model.elbo(obs, labels)
+        elbo, estimated_factors, rec_loss, kl_loss, latent_stat = self.model.elbo(obs, labels)
 
         neg_elbo = elbo.mul(-1)
 
         panel_name = "Metrics/val"
-        self._log_metrics(kl_loss, neg_elbo, rec_loss, panel_name)
+        self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
 
         self._log_mcc(estimated_factors, sources, panel_name)
         self._log_cima(obs, labels, panel_name)
@@ -121,12 +120,12 @@ class IMAModule(pl.LightningModule):
         return cima
 
     def _log_true_data_likelihood(self, obs, panel_name, log=True):
-        #todo: setup the base_log_pdf
+        # todo: setup the base_log_pdf
         true_data_likelihood = observed_data_likelihood(obs, lambda x: jnp.stack(
             [jacfwd(self.trainer.datamodule.unmixing)(jnp.array(xx)) for xx in x]))
 
         if log is True:
-            self.log(f"{panel_name}/true_data_likelihood", true_data_likelihood)
+            self.log(f"{panel_name}/true_data_likelihood", true_data_likelihood.mean().tolist())
 
         return true_data_likelihood
 

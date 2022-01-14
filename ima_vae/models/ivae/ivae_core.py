@@ -212,7 +212,7 @@ class iVAE(nn.Module):
         decoder_params = self.decoder_params(latent)
         return decoder_params, encoder_params, latent, prior_params
 
-    def elbo(self, x, u):
+    def elbo(self, x, u, log=True):
         """
 
         :param x: observations
@@ -227,4 +227,16 @@ class iVAE(nn.Module):
         kl_loss = (log_pz_u - log_qz_xu).mean()
         rec_loss = log_px_z.mean()
 
-        return rec_loss + kl_loss, latent, rec_loss, kl_loss
+        if log is True:
+            latent_stat = self._latent_statistics(encoding, enc_variance)
+
+        return rec_loss + kl_loss, latent, rec_loss, kl_loss, None if log is False else latent_stat
+
+    def _latent_statistics(self, encoding, enc_variance) -> dict:
+
+        latent_mean_variance = enc_variance.mean(0)
+        latent_mean = encoding.mean(0)
+        latent_stat = {**{f"latent_mean_variance_{i}": latent_mean_variance[i] for i in range(self.data_dim)},
+                       **{f"latent_mean_{i}": latent_mean[i] for i in range(self.data_dim)}}
+
+        return latent_stat
