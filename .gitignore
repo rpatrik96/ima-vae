@@ -1,4 +1,5 @@
 wandb/*
+*/wandb/*
 *.sif
 *.egg-info/*
 
