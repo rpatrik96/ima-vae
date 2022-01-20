@@ -101,7 +101,7 @@ class IMAModule(pl.LightningModule):
         self._log_cima(latent, panel_name)
         self._log_amari_dist(obs, panel_name)
         self._log_true_data_likelihood(obs, panel_name)
-        self._log_latent_traversal(latent, panel_name)
+        self._log_latents(latent, panel_name)
 
         return neg_elbo
 
@@ -162,28 +162,28 @@ class IMAModule(pl.LightningModule):
         # parser.add_argument('--n_segments', type=int, default=40, help='Number of clusters in latent space')
         # parser.add_argument('--n_layers', type=int, default=1, help='Number of layers in mixing')
         parser.add_argument('--lr', type=float, default=1e-2, help='Learning rate')
-        parser.add_argument('--latent-traversal', action='store_true', help="Log the latent traversal")
+        parser.add_argument('--log-latents', action='store_true', help="Log the latents pairwise")
 
         return parent_parser
 
-    def _log_latent_traversal(self, latent, panel_name):
+    def _log_latents(self, latent, panel_name):
 
-        if self.hparams.use_wandb is True and self.hparams.latent_traversal is True and isinstance(self.logger,
+        if self.hparams.use_wandb is True and self.hparams.log_latents is True and isinstance(self.logger,
                                                                                                    pl.loggers.wandb.WandbLogger) is True:
-            if self.global_step % (20 * self.hparams.n_log_steps) == 1:
-                wandb_logger = self.logger.experiment
-                table = wandb.Table(columns=["Idx"] + [f"latent_{i}" for i in range(self.hparams.latent_dim)])
-                for i in range(self.hparams.latent_dim - 1):
-                    imgs = [i]
-                    for j in range(i, self.hparams.latent_dim):
-                        imgs.append(
-                            wandb.Image(plt.scatter(latent[:, i], latent[:, j], label=[f"latent_{i}", f"latent_{j}"])))
 
-                    imgs += ([None] * (i))
+            wandb_logger = self.logger.experiment
+            table = wandb.Table(columns=["Idx"] + [f"latent_{i}" for i in range(self.hparams.latent_dim)])
+            for i in range(self.hparams.latent_dim - 1):
+                imgs = [i]
+                for j in range(i, self.hparams.latent_dim):
+                    imgs.append(
+                        wandb.Image(plt.scatter(latent[:, i], latent[:, j], label=[f"latent_{i}", f"latent_{j}"])))
 
-                    table.add_data(*imgs)
+                imgs += ([None] * (i))
 
-                wandb_logger.log({f"{panel_name}/latent_traversal": table})
+                table.add_data(*imgs)
+
+            wandb_logger.log({f"{panel_name}/latents": table})
 
 
 def cima_kl_diagonality(jacobian):
