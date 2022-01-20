@@ -1,7 +1,9 @@
 from typing import get_args
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
+import wandb
 import torch
 import torch.nn as nn
 from jax import jacfwd
@@ -93,10 +95,13 @@ class IMAModule(pl.LightningModule):
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
 
+        _, _, latent, _ = self.model(obs, labels)
+
         self._log_mcc(estimated_factors, sources, panel_name)
-        self._log_cima(obs, labels, panel_name)
-        self._log_amari_dist(obs, labels, panel_name)
+        self._log_cima(latent, panel_name)
+        self._log_amari_dist(obs, panel_name)
         self._log_true_data_likelihood(obs, panel_name)
+        self._log_latent_traversal(latent, panel_name)
 
         return neg_elbo
 
@@ -109,8 +114,7 @@ class IMAModule(pl.LightningModule):
 
         return mcc
 
-    def _log_cima(self, obs, labels, panel_name, log=True):
-        decoder_params, _, latent, _ = self.model(obs, labels)
+    def _log_cima(self, latent, panel_name, log=True):
         unmix_jacobian = calc_jacobian(self.model.decoder, latent)
         cima = cima_kl_diagonality(unmix_jacobian)
 
@@ -129,9 +133,7 @@ class IMAModule(pl.LightningModule):
 
         return true_data_likelihood
 
-    def _log_amari_dist(self, obs, labels, panel_name, log=True):
-
-        decoder_params, _, latent, _ = self.model(obs, labels)
+    def _log_amari_dist(self, obs, panel_name, log=True):
 
         J = lambda xx: jnp.array(
             jacobian(lambda x: self.model.decoder.forward(x).sum(dim=0), torch.Tensor(xx.tolist())).permute(1, 0, 2))
@@ -160,8 +162,28 @@ class IMAModule(pl.LightningModule):
         # parser.add_argument('--n_segments', type=int, default=40, help='Number of clusters in latent space')
         # parser.add_argument('--n_layers', type=int, default=1, help='Number of layers in mixing')
         parser.add_argument('--lr', type=float, default=1e-2, help='Learning rate')
+        parser.add_argument('--latent-traversal', action='store_true', help="Log the latent traversal")
 
         return parent_parser
+
+    def _log_latent_traversal(self, latent, panel_name):
+
+        if self.hparams.use_wandb is True and self.hparams.latent_traversal is True and isinstance(self.logger,
+                                                                                                   pl.loggers.wandb.WandbLogger) is True:
+            if self.global_step % (20 * self.hparams.n_log_steps) == 1:
+                wandb_logger = self.logger.experiment
+                table = wandb.Table(columns=["Idx"] + [f"latent_{i}" for i in range(self.hparams.latent_dim)])
+                for i in range(self.hparams.latent_dim - 1):
+                    imgs = [i]
+                    for j in range(i, self.hparams.latent_dim):
+                        imgs.append(
+                            wandb.Image(plt.scatter(latent[:, i], latent[:, j], label=[f"latent_{i}", f"latent_{j}"])))
+
+                    imgs += ([None] * (i))
+
+                    table.add_data(*imgs)
+
+                wandb_logger.log({f"{panel_name}/latent_traversal": table})
 
 
 def cima_kl_diagonality(jacobian):
