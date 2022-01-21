@@ -88,22 +88,44 @@ class IMAModule(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, estimated_factors, rec_loss, kl_loss, latent_stat = self.model.elbo(obs, labels)
+        elbo, latent, rec_loss, kl_loss, latent_stat, reconstruction = self.model.elbo(obs, labels,
+                                                                                       reconstruction=True)
 
         neg_elbo = elbo.mul(-1)
 
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
-
-        _, _, latent, _ = self.model(obs, labels)
-
-        self._log_mcc(estimated_factors, sources, panel_name)
+        self._log_mcc(latent, sources, panel_name)
         self._log_cima(latent, panel_name)
         self._log_amari_dist(obs, panel_name)
         self._log_true_data_likelihood(obs, panel_name)
         self._log_latents(latent, panel_name)
+        self._log_reconstruction(obs, reconstruction, panel_name)
 
         return neg_elbo
+
+    def _log_reconstruction(self, obs, rec, panel_name, max_img_num: int = 5):
+        if rec is not None and self.hparams.use_wandb is True and self.hparams.log_reconstruction is True and isinstance(
+                self.logger,
+                pl.loggers.wandb.WandbLogger) is True:
+            wandb_logger = self.logger.experiment
+            # not images
+
+            if len(rec.shape) == 2:
+                table = wandb.Table(columns=[f"dim={i}" for i in range(self.hparams.latent_dim)])
+                imgs = []
+                for i in range(self.hparams.latent_dim):
+                    imgs.append(wandb.Image(plt.scatter(obs[:, i], rec[:, i], label=[f"obs_{i}", f"rec_{i}"])))
+
+                table.add_data(*imgs)
+
+            # images
+            else:
+                table = wandb.Table(columns=['Observations', 'Reconstruction'])
+                for i in range(max_img_num):
+                    table.add_data(wandb.Image(obs[i, :]), wandb.Image(rec[i, :]))
+
+            wandb_logger.log({f"{panel_name}/reconstructions": table})
 
     def _log_mcc(self, estimated_factors, sources, panel_name, log=True):
         mat, _, _ = ima_vae.metrics.mcc.correlation(sources.permute(1, 0).numpy(),
@@ -163,13 +185,14 @@ class IMAModule(pl.LightningModule):
         # parser.add_argument('--n_layers', type=int, default=1, help='Number of layers in mixing')
         parser.add_argument('--lr', type=float, default=1e-2, help='Learning rate')
         parser.add_argument('--log-latents', action='store_true', help="Log the latents pairwise")
+        parser.add_argument('--log-reconstruction', action='store_true', help="Log the reconstructions")
 
         return parent_parser
 
     def _log_latents(self, latent, panel_name):
 
         if self.hparams.use_wandb is True and self.hparams.log_latents is True and isinstance(self.logger,
-                                                                                                   pl.loggers.wandb.WandbLogger) is True:
+                                                                                              pl.loggers.wandb.WandbLogger) is True:
 
             wandb_logger = self.logger.experiment
             table = wandb.Table(columns=["Idx"] + [f"latent_{i}" for i in range(self.hparams.latent_dim)])

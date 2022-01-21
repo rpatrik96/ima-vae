@@ -212,7 +212,7 @@ class iVAE(nn.Module):
         decoder_params = self.decoder_params(latent)
         return decoder_params, encoder_params, latent, prior_params
 
-    def elbo(self, x, u, log=True):
+    def elbo(self, x, u, log=True, reconstruction:bool=False):
         """
 
         :param x: observations
@@ -230,7 +230,7 @@ class iVAE(nn.Module):
         if log is True:
             latent_stat = self._latent_statistics(encoding, enc_variance)
 
-        return rec_loss + kl_loss, latent, rec_loss, kl_loss, None if log is False else latent_stat
+        return rec_loss + kl_loss, latent, rec_loss, kl_loss, None if log is False else latent_stat, None if reconstruction is False else decoder_params[0]
 
     def _latent_statistics(self, encoding, enc_variance) -> dict:
 
