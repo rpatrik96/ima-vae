@@ -1,19 +1,21 @@
-from typing import get_args
+from typing import get_args, List
 
+import ima_vae.metrics
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
-import wandb
 import torch
 import torch.nn as nn
+import wandb
+from disent.metrics._dci import _compute_dci
+from disent.metrics._sap import _compute_sap
+from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
+from ima_vae.metrics.mig import compute_mig_with_discrete_factors
+from ima_vae.models.ivae.ivae_core import ActivationType
+from ima_vae.models.ivae.ivae_core import iVAE
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
-
-import ima_vae.metrics
-from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
-from ima_vae.models.ivae.ivae_core import ActivationType
-from ima_vae.models.ivae.ivae_core import iVAE
 
 
 # from disentanglement_lib.evaluation.metrics import mig, unsupervised_metrics, beta_vae, dci, factor_vae, irs, modularity_explicitness, unified_scores
@@ -62,10 +64,13 @@ class IMAModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, z_est, rec_loss, kl_loss, latent_stat = self.model.elbo(obs, labels)
+        elbo, z_est, rec_loss, kl_loss, latent_stat, _ = self.model.elbo(obs, labels)
         neg_elbo = elbo.mul(-1)
 
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, "Metrics/train")
+
+        # todo: dataset needs a discrete list
+        # self._log_disentanglement_metrics(DisentDataset(self.trainer.datamodule.gt_ds), "test")
 
         return neg_elbo
 
@@ -75,16 +80,30 @@ class IMAModule(pl.LightningModule):
         self.log(f"{panel_name}/kl_loss", kl_loss)
         self.log(f"{panel_name}/latent_statistics", latent_stat)
 
-    # def log_disentanglement_metrics(self):
-    #
-    #     mig.compute_mig()
-    #     unified_scores.compute_unified_scores()
-    #     unsupervised_metrics.unsupervised_metrics()
-    #     dci.compute_dci()
-    #     irs.compute_irs()
-    #     modularity_explicitness.compute_modularity_explicitness()
-    #     beta_vae.compute_beta_vae_sklearn()
-    #     factor_vae.compute_factor_vae()
+    def _log_disentanglement_metrics(self, sources, predicted_latents, discrete_list: List[bool], panel_name,
+                                     continuous_factors: bool = True, train_split=0.8):
+
+        pass
+
+        """
+            mus: mean latents
+            ys: generating factors
+        """
+
+        num_samples = predicted_latents.shape[0]
+        num_train = int(train_split * num_samples)
+
+        mus_train, mus_test = predicted_latents[:num_train, :], predicted_latents[num_train:, :]
+        ys_train, ys_test = sources[:num_train, :], sources[num_train:, :]
+
+        sap: dict = _compute_sap(mus_train, ys_train, mus_test, ys_test, continuous_factors)
+        dci: dict = _compute_dci(mus_train, ys_train, mus_test, ys_test)
+        # uses train-val-test splits of 0.8-0.1-0.1
+        mig: dict = compute_mig_with_discrete_factors(predicted_latents, sources, discrete_list)
+
+        self.log(f"{panel_name}/mig", mig)
+        self.log(f"{panel_name}/dci", dci)
+        self.log(f"{panel_name}/sap", sap)
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch

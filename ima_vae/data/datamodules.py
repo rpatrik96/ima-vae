@@ -1,11 +1,10 @@
 from typing import Optional
 
 import pytorch_lightning as pl
-from torch.utils.data import DataLoader
-from torch.utils.data import random_split
-
 from ima_vae.data.data_generators import ConditionalDataset
 from ima_vae.data.data_generators import gen_data
+from torch.utils.data import DataLoader
+from torch.utils.data import random_split
 
 
 class IMADataModule(pl.LightningDataModule):
@@ -19,14 +18,16 @@ class IMADataModule(pl.LightningDataModule):
         print(f"{self.hparams.batch_size=}")
 
     def setup(self, stage: Optional[str] = None):
-
         # generate data
         n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 
-        obs, labels, sources, self.mixing, self.unmixing = gen_data(Ncomp=self.hparams.latent_dim, Nlayer=self.hparams.n_layers,
-                                        Nsegment=self.hparams.n_segments, NsegmentObs=n_obs_per_seg,
-                                        orthog=self.hparams.orthog, mobius=self.hparams.mobius, seed=self.hparams.seed,
-                                        NonLin="none" if self.hparams.linear is True else 'lrelu')
+        obs, labels, sources, self.mixing, self.unmixing = gen_data(Ncomp=self.hparams.latent_dim,
+                                                                    Nlayer=self.hparams.n_layers,
+                                                                    Nsegment=self.hparams.n_segments,
+                                                                    NsegmentObs=n_obs_per_seg,
+                                                                    orthog=self.hparams.orthog,
+                                                                    mobius=self.hparams.mobius, seed=self.hparams.seed,
+                                                                    NonLin="none" if self.hparams.linear is True else 'lrelu')
 
         ima_full = ConditionalDataset(obs, labels, sources)
 
