@@ -1,34 +1,11 @@
-import numpy as np
-import scipy
-import torch
-
 '''
 Code for MCC taken from the TCL Repo
 '''
 
 import sys
+import numpy as np
+import scipy as sp
 import copy
-
-# ---------------------------------------------------------------------------
-# Exports
-# ---------------------------------------------------------------------------
-
-__all__     = ['Munkres', 'make_cost_matrix']
-
-# ---------------------------------------------------------------------------
-# Globals
-# ---------------------------------------------------------------------------
-
-# Info about the module
-__version__   = "1.0.8"
-__author__    = "Brian Clapper, bmc@clapper.org"
-__url__       = "http://software.clapper.org/munkres/"
-__copyright__ = "(c) 2008 Brian M. Clapper"
-__license__   = "Apache Software License"
-
-# ---------------------------------------------------------------------------
-# Classes
-# ---------------------------------------------------------------------------
 
 class Munkres:
     """
@@ -432,48 +409,6 @@ def print_matrix(matrix, msg=None):
             sep = ', '
         sys.stdout.write(']\n')
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    matrices = [
-        # Square
-        ([[400, 150, 400],
-          [400, 450, 600],
-          [300, 225, 300]],
-         850),  # expected cost
-
-        # Rectangular variant
-        ([[400, 150, 400, 1],
-          [400, 450, 600, 2],
-          [300, 225, 300, 3]],
-         452),  # expected cost
-
-
-        # Square
-        ([[10, 10,  8],
-          [9,  8,  1],
-          [9,  7,  4]],
-         18),
-
-        # Rectangular variant
-        ([[10, 10,  8, 11],
-          [9,  8,  1, 1],
-          [9,  7,  4, 10]],
-         15)]
-
-    m = Munkres()
-    for cost_matrix, expected_total in matrices:
-        indexes = m.compute(cost_matrix)
-        total_cost = 0
-        for r, c in indexes:
-            x = cost_matrix[r][c]
-            total_cost += x
-        assert expected_total == total_cost
-
-import scipy as sp
 def correlation(x, y, method='Pearson'):
     """Evaluate correlation
      Args:
@@ -517,3 +452,18 @@ def correlation(x, y, method='Pearson'):
         corr_sort = corr_sort[0:dim, dim:]
 
     return corr_sort, sort_idx, x_sort
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
