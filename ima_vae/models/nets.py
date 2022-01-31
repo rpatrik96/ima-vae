@@ -1,8 +1,6 @@
-import torch
-import numpy as np
 from torch import nn
-from torch.autograd import Variable
 from torch.nn import functional as F
+
 
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation, device, slope=.2):
@@ -44,6 +42,7 @@ class MLP(nn.Module):
                 h = self._act_f[c](self.fc[c](h))
         return h
 
+
 class View(nn.Module):
     def __init__(self, size):
         super(View, self).__init__()
@@ -52,41 +51,40 @@ class View(nn.Module):
     def forward(self, tensor):
         return tensor.view(self.size)
 
-def get_sprites_models(z_dim,post_dim,nc=3):        
+
+def get_sprites_models(z_dim, post_dim, nc=3):
     encoder = nn.Sequential(
-      nn.Conv2d(nc, 32, 4, 2, 1),    
-      nn.ReLU(),
-      nn.Conv2d(32, 32, 4, 2, 1),     
-      nn.ReLU(),
-      nn.Conv2d(32, 32, 4, 2, 1),     
-      nn.ReLU(),
-      nn.Conv2d(32, 32, 4, 2, 1),   
-      nn.ReLU(),
-      View((-1, 32*4*4)),           
-      nn.Linear(32*4*4, 256),            
-      nn.ReLU(),
-      nn.Linear(256, 256),              
-      nn.ReLU(),
-      nn.Linear(256, post_dim),           
-      )
-    
+        nn.Conv2d(nc, 32, 4, 2, 1),
+        nn.ReLU(),
+        nn.Conv2d(32, 32, 4, 2, 1),
+        nn.ReLU(),
+        nn.Conv2d(32, 32, 4, 2, 1),
+        nn.ReLU(),
+        nn.Conv2d(32, 32, 4, 2, 1),
+        nn.ReLU(),
+        View((-1, 32 * 4 * 4)),
+        nn.Linear(32 * 4 * 4, 256),
+        nn.ReLU(),
+        nn.Linear(256, 256),
+        nn.ReLU(),
+        nn.Linear(256, post_dim),
+    )
+
     decoder = nn.Sequential(
-        nn.Linear(z_dim, 256),            
+        nn.Linear(z_dim, 256),
         nn.ReLU(),
-        nn.Linear(256, 256),                 
+        nn.Linear(256, 256),
         nn.ReLU(),
-        nn.Linear(256, 32*4*4),         
+        nn.Linear(256, 32 * 4 * 4),
         nn.ReLU(),
-        View((-1, 32, 4, 4)),     
-        nn.ConvTranspose2d(32, 32, 4, 2, 1), 
+        View((-1, 32, 4, 4)),
+        nn.ConvTranspose2d(32, 32, 4, 2, 1),
         nn.ReLU(),
-        nn.ConvTranspose2d(32, 32, 4, 2, 1), 
+        nn.ConvTranspose2d(32, 32, 4, 2, 1),
         nn.ReLU(),
-        nn.ConvTranspose2d(32, 32, 4, 2, 1), 
+        nn.ConvTranspose2d(32, 32, 4, 2, 1),
         nn.ReLU(),
         nn.ConvTranspose2d(32, nc, 4, 2, 1),
-        )
-
+    )
 
     return encoder, decoder
-

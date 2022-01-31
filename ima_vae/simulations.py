@@ -1,12 +1,11 @@
 import argparse
-import os
-import pickle
-import torch
-import numpy as np
 import random
+
+import numpy as np
+import torch
+
 from train_ivae import train_ivae
-from inspect_jacobian import train_regression
-from train_classifier import train_classifier
+
 
 def parse_sim():
     parser = argparse.ArgumentParser(description='')
@@ -23,14 +22,18 @@ def parse_sim():
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
     parser.add_argument("--dset", type=str, default="synth", help="Dataset to use (synth or image)")
     parser.add_argument("--prior", type=str, default="gaussian", help="Prior distribution")
-    parser.add_argument("--diag", type=int, default=1, help="Whether or not posterior has diagonal covariance. 1 for True, 0 for False")
+    parser.add_argument("--diag", type=int, default=1,
+                        help="Whether or not posterior has diagonal covariance. 1 for True, 0 for False")
     parser.add_argument("--savestep", type=int, default=50, help="Iteration to save model")
     parser.add_argument("--lname", type=str, default=None, help="Name of model if you want to load a model")
     parser.add_argument("--corr", type=str, default="Pearson", help="Correlation type for MCC")
     parser.add_argument("--beta", type=int, default=1, help="Beta hyperparameter on the dkl")
-    parser.add_argument("--angle", type=bool, default=False, help="True if you want angle as a factor for image dataset")
-    parser.add_argument("--shape", type=bool, default=False, help="True if you want shape as a factor for image dataset")
+    parser.add_argument("--angle", type=bool, default=False,
+                        help="True if you want angle as a factor for image dataset")
+    parser.add_argument("--shape", type=bool, default=False,
+                        help="True if you want shape as a factor for image dataset")
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     args = parse_sim()
@@ -43,4 +46,3 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
 
     train_ivae(args)
-
