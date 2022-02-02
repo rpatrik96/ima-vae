@@ -1,58 +1,12 @@
-from typing import Literal
-
 import numpy as np
 import torch
 from torch import distributions as dist
 from torch import nn
-from torch.nn import functional as F
 
-ActivationType = Literal['lrelu', 'sigmoid', 'none']
-
-
+from ima_vae.models.nets import MLP
 def weights_init(m):
     if isinstance(m, nn.Linear):
         nn.init.xavier_uniform_(m.weight.data)
-
-
-class MLP(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation: ActivationType, device, slope=.2):
-        super().__init__()
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-        self.n_layers = n_layers
-        self.device = device
-        self.hidden_dim = [hidden_dim] * (self.n_layers - 1)
-        self.activation = [activation] * (self.n_layers - 1)
-
-        self._act_f = []
-        for act in self.activation:
-            if act == 'lrelu':
-                self._act_f.append(lambda x: F.leaky_relu(x, negative_slope=slope))
-            elif act == 'sigmoid':
-                self._act_f.append(F.sigmoid)
-            elif act == 'none':
-                self._act_f.append(lambda x: x)
-            else:
-                ValueError('Incorrect activation: {}'.format(act))
-
-        if self.n_layers == 1:
-            _fc_list = [nn.Linear(self.input_dim, self.output_dim)]
-        else:
-            _fc_list = [nn.Linear(self.input_dim, self.hidden_dim[0])]
-            for i in range(1, self.n_layers - 1):
-                _fc_list.append(nn.Linear(self.hidden_dim[i - 1], self.hidden_dim[i]))
-            _fc_list.append(nn.Linear(self.hidden_dim[self.n_layers - 2], self.output_dim))
-        self.fc = nn.ModuleList(_fc_list)
-        self.to(self.device)
-
-    def forward(self, x):
-        h = x
-        for c in range(self.n_layers):
-            if c == self.n_layers - 1:
-                h = self.fc[c](h)
-            else:
-                h = self._act_f[c](self.fc[c](h))
-        return h
 
 
 class Dist:
@@ -212,7 +166,7 @@ class iVAE(nn.Module):
         decoder_params = self.decoder_params(latent)
         return decoder_params, encoder_params, latent, prior_params
 
-    def elbo(self, x, u, log=True, reconstruction:bool=False):
+    def elbo(self, x, u, log=True, reconstruction: bool = False):
         """
 
         :param x: observations
@@ -230,7 +184,8 @@ class iVAE(nn.Module):
         if log is True:
             latent_stat = self._latent_statistics(encoding, enc_variance)
 
-        return rec_loss + kl_loss, latent, rec_loss, kl_loss, None if log is False else latent_stat, None if reconstruction is False else decoder_params[0]
+        return rec_loss + kl_loss, latent, rec_loss, kl_loss, None if log is False else latent_stat, None if reconstruction is False else \
+        decoder_params[0]
 
     def _latent_statistics(self, encoding, enc_variance) -> dict:
 

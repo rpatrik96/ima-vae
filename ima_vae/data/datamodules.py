@@ -8,11 +8,11 @@ from torch.utils.data import random_split
 from ima_vae.utils import get_load_name
 import numpy as np
 
-
+from typing import Literal
 class IMADataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str = "path/to/dir", batch_size: int = 64, orthog: bool = False, mobius: bool = False,
                  linear: bool = False, latent_dim: int = 5, n_segments: int = 1, n_layers: int = 1, n_obs: int = 60e3,
-                 seed: int = 1, train_ratio: float = .7, val_ratio: float = 0.2, **kwargs):
+                 seed: int = 1, train_ratio: float = .7, val_ratio: float = 0.2, dataset:Literal["synth", "img"]="synth", **kwargs):
         super().__init__()
 
         self.save_hyperparameters()
@@ -29,7 +29,6 @@ class IMADataModule(pl.LightningDataModule):
             labels = np.load(lname)['arr_1']
             sources = np.load(lname)['arr_2']
         elif self.hparams.dataset == 'synth':
-
 
             n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 

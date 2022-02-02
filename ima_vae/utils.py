@@ -134,12 +134,12 @@ def get_latent_interp(net):
         x = net.interp_sample
         decoder = net.decoder
         params = net.encoder(x.unsqueeze(0)).squeeze()
-        mu = params[:net.z_dim]
+        mu = params[:net.latent_dim]
         if net.posterior.diag:
-            std = params[net.z_dim:].exp().sqrt()
+            std = params[net.latent_dim:].exp().sqrt()
         else:
-            cholesky = torch.zeros((net.z_dim, net.z_dim)).to(x.device)
-            cholesky_factors = params[net.z_dim:]
+            cholesky = torch.zeros((net.latent_dim, net.latent_dim)).to(x.device)
+            cholesky_factors = params[net.latent_dim:]
             it = 0
             for i in range(cholesky.shape[1]):
                 for j in range(i + 1):
@@ -151,7 +151,7 @@ def get_latent_interp(net):
         gifs = []
         r = np.arange(-32, 33, 8)
         samples = []
-        for row in range(net.z_dim):
+        for row in range(net.latent_dim):
             mean = mu[row].clone()
             sig = std[row].clone()
             z = mu.clone()
@@ -164,11 +164,11 @@ def get_latent_interp(net):
         net.interp_dir = os.path.join(net.interp_dir, str(net.iter))
         os.makedirs(net.interp_dir, exist_ok=True)
         gifs = torch.cat(gifs)
-        gifs = gifs.view(1, net.z_dim, len(r), x.shape[0], x.shape[1], x.shape[2]).transpose(1, 2)
+        gifs = gifs.view(1, net.latent_dim, len(r), x.shape[0], x.shape[1], x.shape[2]).transpose(1, 2)
         for j in range(len(r)):
             save_image(tensor=gifs[0][j].cpu(),
                        fp=os.path.join(net.interp_dir, '{}.jpg'.format(j)),
-                       nrow=net.z_dim, pad_value=1)
+                       nrow=net.latent_dim, pad_value=1)
         images = []
         for j in range(len(r)):
             filename = os.path.join(net.interp_dir, '{}.jpg'.format(j))

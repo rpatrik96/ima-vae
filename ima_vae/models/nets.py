@@ -1,9 +1,13 @@
+from typing import Literal
+
 from torch import nn
 from torch.nn import functional as F
 
+ActivationType = Literal['lrelu', 'sigmoid', 'none']
+
 
 class MLP(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation, device, slope=.2):
+    def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation: ActivationType, device, slope=.2):
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
