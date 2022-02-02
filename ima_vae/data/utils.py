@@ -54,54 +54,6 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
     '''
     from jax import numpy as jnp
 
-    def leaky_ReLU_1d(d, negSlope):
-        """
-        one dimensional implementation of leaky ReLU
-        """
-        if d > 0:
-            return d
-        else:
-            return d * negSlope
-
-    leaky1d = np.vectorize(leaky_ReLU_1d)
-
-    def sigmoidAct(x):
-        """
-        one dimensional application of sigmoid activation function
-        """
-        return 1. / (1 + np.exp(-1 * x))
-
-    def leaky_ReLU(D, negSlope):
-        """
-        implementation of leaky ReLU activation function
-        """
-        assert negSlope > 0  # must be positive
-        return leaky1d(D, negSlope)
-
-    def generateUniformMat(Ncomp):
-        """
-        generate a random matrix by sampling each element uniformly at random
-        check condition number versus a condition threshold
-        """
-        A = np.random.uniform(1, 3, (Ncomp, Ncomp)) - 1
-        for i in range(Ncomp):
-            A[:, i] /= np.sqrt((A[:, i] ** 2).sum())
-
-        return A
-
-    import jax.numpy as jnp
-
-    # taken from IMA repo
-    def build_moebius_transform(alpha, A, a, b, epsilon=2):
-        '''
-        Implements Möbius transformations for D>=2, based on:
-        https://en.wikipedia.org/wiki/Liouville%27s_theorem_(conformal_mappings)
-
-        alpha: a scalar
-        A: an orthogonal matrix
-        a, b: vectors in \RR^D (dimension of the data)
-        '''
-
     def mixing_moebius_transform(x):
         if epsilon == 2:
             frac = jnp.sum((x - a) ** 2)
