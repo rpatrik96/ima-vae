@@ -10,3 +10,4 @@ jax~=0.2.21
 distrax~=0.1.0
 scipy~=1.7.3
 pytest~=6.2.5
+dm-env~=1.5
