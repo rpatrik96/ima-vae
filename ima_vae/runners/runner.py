@@ -45,18 +45,13 @@ def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
 class IMAModule(pl.LightningModule):
 
     def __init__(self, device: str, activation: ActivationType, latent_dim: int = 2, n_segments: int = 1,
-                 n_layers: int = 1, lr: float = 1e-4, **kwargs):
+                 n_layers: int = 1, lr: float = 1e-4, n_classes=1, **kwargs):
         super().__init__()
 
         self.save_hyperparameters()
 
-        self.model: iVAE = iVAE(latent_dim=latent_dim,
-                                data_dim=latent_dim,
-                                n_segments=n_segments,
-                                n_layers=n_layers,
-                                hidden_dim=latent_dim * 10,
-                                activation=activation,
-                                device=device)
+        self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
+                                n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device)
 
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions

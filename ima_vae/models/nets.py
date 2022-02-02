@@ -56,9 +56,9 @@ class View(nn.Module):
         return tensor.view(self.size)
 
 
-def get_sprites_models(z_dim, post_dim, nc=3):
+def get_sprites_models(z_dim, post_dim, n_classes=3):
     encoder = nn.Sequential(
-        nn.Conv2d(nc, 32, 4, 2, 1),
+        nn.Conv2d(n_classes, 32, 4, 2, 1),
         nn.ReLU(),
         nn.Conv2d(32, 32, 4, 2, 1),
         nn.ReLU(),
@@ -88,7 +88,7 @@ def get_sprites_models(z_dim, post_dim, nc=3):
         nn.ReLU(),
         nn.ConvTranspose2d(32, 32, 4, 2, 1),
         nn.ReLU(),
-        nn.ConvTranspose2d(32, nc, 4, 2, 1),
+        nn.ConvTranspose2d(32, n_classes, 4, 2, 1),
     )
 
     return encoder, decoder
