@@ -7,6 +7,9 @@ class Dist:
     def __init__(self):
         pass
 
+    def sample(self, *args):
+        pass
+
     def log_pdf(self, *args, **kwargs):
         pass
 
@@ -29,28 +32,23 @@ class Beta(Dist):
         return log_p_z
 
 
-'''
-Code for Normal class adapted from: https://github.com/ilkhem/icebeem/blob/master/models/ivae/ivae_core.py
-'''
-
-
 class Normal(Dist):
-    def __init__(self, device, diag=True):
+    '''
+    Code for Normal class adapted from: https://github.com/ilkhem/icebeem/blob/master/models/ivae/ivae_core.py
+    '''
+
+    def __init__(self, device='cpu', diag=True):
         super().__init__()
         self.device = device
-        self.diag = diag
         self.c = 2 * np.pi * torch.ones(1).to(self.device)
         self._dist = dist.normal.Normal(torch.zeros(1).to(self.device), torch.ones(1).to(self.device))
         self.name = 'gauss'
+        self.diag = True
 
-    def sample(self, mu, v, diag=True):
+    def sample(self, mu, v):
         eps = self._dist.sample(mu.size()).squeeze()
         std = v.sqrt()
-        if self.diag:
-            scaled = eps.mul(std)
-        else:
-            # v is cholesky and not variance
-            scaled = torch.matmul(v, eps.unsqueeze(2)).view(eps.shape)
+        scaled = eps.mul(std)
         return scaled.add(mu)
 
     def log_pdf(self, x, mu, v):
@@ -69,12 +67,37 @@ class Normal(Dist):
         assert cov.size() == (batch_size, d, d)
         inv_cov = torch.inverse(cov)
         c = d * torch.log(self.c)
-        # rand_ind = np.random.randint(low=0, high=cov.shape[0]-1)
-        # print(cov[rand_ind])
         _, logabsdets = torch.slogdet(cov)
         xmu = x - mu
         lpdf = -0.5 * (c + logabsdets + torch.einsum('bi,bij,bj->b', [xmu, inv_cov, xmu]))
         return lpdf
+
+
+class Laplace(Dist):
+    '''
+    Code from: https://github.com/ilkhem/icebeem/blob/master/models/ivae/ivae_core.py
+    '''
+
+    def __init__(self, device='cpu'):
+        super().__init__()
+        self.device = device
+        self._dist = dist.laplace.Laplace(torch.zeros(1).to(self.device), torch.ones(1).to(self.device) / np.sqrt(2))
+        self.name = 'laplace'
+
+    def sample(self, mu, b):
+        eps = self._dist.sample(mu.size())
+        scaled = eps.mul(b)
+        return scaled.add(mu)
+
+    def log_pdf(self, x, mu, b, reduce=True, param_shape=None):
+        """compute the log-pdf of a laplace distribution with diagonal covariance"""
+        if param_shape is not None:
+            mu, b = mu.view(param_shape), b.view(param_shape)
+        lpdf = -torch.log(2 * b) - (x - mu).abs().div(b)
+        if reduce:
+            return lpdf.sum(dim=-1)
+        else:
+            return lpdf
 
 
 class Uniform(Dist):
