@@ -1,5 +1,6 @@
 import torch
 from ima_vae.models import nets
+from ima_vae.data.datamodules import DatasetType
 from torch import nn
 
 
@@ -9,7 +10,7 @@ def weights_init(m):
 
 
 class iVAE(nn.Module):
-    def __init__(self, prior, posterior, likelihood, latent_dim, n_classes, dataset, activation, device, n_layers,
+    def __init__(self, prior, posterior, likelihood, latent_dim, n_classes, dataset:DatasetType, activation, device, n_layers,
                  slope=.2, nc=3):
         super(iVAE, self).__init__()
         self.latent_dim = latent_dim

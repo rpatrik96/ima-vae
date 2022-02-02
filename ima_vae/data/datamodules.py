@@ -9,10 +9,12 @@ from ima_vae.utils import get_load_name
 import numpy as np
 
 from typing import Literal
+
+DatasetType = Literal["synth", "img"]
 class IMADataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str = "path/to/dir", batch_size: int = 64, orthog: bool = False, mobius: bool = False,
                  linear: bool = False, latent_dim: int = 5, n_segments: int = 1, n_layers: int = 1, n_obs: int = 60e3,
-                 seed: int = 1, train_ratio: float = .7, val_ratio: float = 0.2, dataset:Literal["synth", "img"]="synth", **kwargs):
+                 seed: int = 1, train_ratio: float = .7, val_ratio: float = 0.2, dataset:DatasetType="synth", **kwargs):
         super().__init__()
 
         self.save_hyperparameters()

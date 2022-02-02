@@ -4,15 +4,14 @@ from torch import distributions as dist
 from torch import nn
 
 from ima_vae.models.nets import MLP
-def weights_init(m):
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight.data)
+from typing import Literal
 
-
+ActivationType = Literal['lrelu', 'sigmoid', 'none']
 
 
 from ima_vae.distributions import Normal
 
+from ima_vae.models.vaes import weights_init
 
 class iVAE(nn.Module):
     def __init__(self, latent_dim, data_dim, n_segments, n_layers, hidden_dim, activation, device, prior=None,
