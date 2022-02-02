@@ -9,6 +9,9 @@ wandb/*
 # checkpoints
 *.ckpt
 
+# numpy data
+*.npz
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
