@@ -11,8 +11,8 @@ from disent.metrics._dci import _compute_dci
 from disent.metrics._sap import _compute_sap
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
 from ima_vae.metrics.mig import compute_mig_with_discrete_factors
-from ima_vae.models.ivae.ivae_core import ActivationType
-from ima_vae.models.ivae.ivae_core import iVAE
+from ima_vae.models.ivae import ActivationType
+from ima_vae.models.ivae import iVAE
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian

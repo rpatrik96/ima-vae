@@ -7,11 +7,13 @@ ActivationType = Literal['lrelu', 'sigmoid', 'none']
 
 from ima_vae.distributions import Normal, Uniform, Beta
 
-from ima_vae.models.vaes import weights_init
 from ima_vae.data.datamodules import DatasetType
 
 from ima_vae.models import nets
 
+def weights_init(m):
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_uniform_(m.weight.data)
 
 class iVAE(nn.Module):
     def __init__(self, latent_dim, data_dim, n_segments, n_classes, n_layers, hidden_dim, activation, device,
