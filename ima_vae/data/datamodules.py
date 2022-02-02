@@ -5,6 +5,8 @@ from ima_vae.data.data_generators import ConditionalDataset
 from ima_vae.data.data_generators import gen_data
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
+from ima_vae.utils import get_load_name
+import numpy as np
 
 
 class IMADataModule(pl.LightningDataModule):
@@ -19,15 +21,25 @@ class IMADataModule(pl.LightningDataModule):
 
     def setup(self, stage: Optional[str] = None):
         # generate data
-        n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 
-        obs, labels, sources, self.mixing, self.unmixing = gen_data(Ncomp=self.hparams.latent_dim,
-                                                                    Nlayer=self.hparams.n_layers,
-                                                                    Nsegment=self.hparams.n_segments,
-                                                                    NsegmentObs=n_obs_per_seg,
-                                                                    orthog=self.hparams.orthog,
-                                                                    mobius=self.hparams.mobius, seed=self.hparams.seed,
-                                                                    NonLin="none" if self.hparams.linear is True else 'lrelu')
+        if self.hparams.dataset == 'image':
+            lname = get_load_name(self.hparams.n_obs, self.hparams.n_classes)
+
+            obs = np.load(lname)['arr_0']
+            labels = np.load(lname)['arr_1']
+            sources = np.load(lname)['arr_2']
+        elif self.hparams.dataset == 'synth':
+
+
+            n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
+
+            obs, labels, sources, self.mixing, self.unmixing = gen_data(Ncomp=self.hparams.latent_dim,
+                                                                        Nlayer=self.hparams.n_layers,
+                                                                        Nsegment=self.hparams.n_segments,
+                                                                        NsegmentObs=n_obs_per_seg,
+                                                                        orthog=self.hparams.orthog,
+                                                                        mobius=self.hparams.mobius, seed=self.hparams.seed,
+                                                                        NonLin="none" if self.hparams.linear is True else 'lrelu')
 
         ima_full = ConditionalDataset(obs, labels, sources)
 

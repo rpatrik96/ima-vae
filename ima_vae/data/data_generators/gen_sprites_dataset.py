@@ -44,7 +44,6 @@ beta_params = torch.Tensor(np.random.uniform(args.lower, args.upper, 2 * nfactor
 angle_params = torch.zeros((args.nclasses, 2)).numpy()
 shape_probs = torch.zeros((args.nclasses, 3)).numpy()
 
-
 sname = "isprites_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
     args.lower) + "_upper_" + str(args.upper)
 sname_train = "isprites_train_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
@@ -150,16 +149,4 @@ X, Y = generate_isprites(args.nclasses, obs_per_class, args.lower, args.upper)
 S = torch.Tensor(S).flatten(0, 1).numpy().astype(np.float32)
 Y = to_one_hot(Y)[0].astype(np.float32)
 
-# Train/validation split
-# p = np.random.permutation(len(X))
-# X = X[p]
-# Y = Y[p]
-# S = S[p]
-#
-# X_tr, X_v = np.split(X, [int(.8 * len(X))])
-# Y_tr, Y_v = np.split(Y, [int(.8 * len(Y))])
-# S_tr, S_v = np.split(S, [int(.8 * len(S))])
-
 np.savez_compressed(sname, X, Y, S, beta_params, angle_params, shape_probs)
-# np.savez_compressed(sname_train, X_tr, Y_tr, S_tr, beta_params, angle_params, shape_probs)
-# np.savez_compressed(sname_val, X_v, Y_v, S_v, beta_params, angle_params, shape_probs)
