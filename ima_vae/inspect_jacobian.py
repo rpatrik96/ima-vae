@@ -17,8 +17,8 @@ def train_regression(args):
         activation = 'lrelu'
     if args.dset == 'image':
         _, net = nets.get_sprites_models(args.z_dim, args.z_dim)
-        train_loader = dataloaders.get_dataloader(args.n_batch, lname=get_load_name(args, train=True), transform=True)
-        val_loader = dataloaders.get_dataloader(args.n_batch, lname=get_load_name(args, train=False), transform=True)
+        train_loader = dataloaders.get_dataloader(args.n_batch, lname=get_load_name(args, train=True))
+        val_loader = dataloaders.get_dataloader(args.n_batch, lname=get_load_name(args, train=False))
     elif args.dset == 'synth':
         net = nets.MLP(args.z_dim, args.z_dim, args.z_dim * 10, args.n_layers, activation=activation, slope=.2,
                        device=device)
@@ -41,17 +41,11 @@ def train_regression(args):
         Y_tr, Y_v = np.split(y, [int(.8 * len(y))])
         S_tr, S_v = np.split(s, [int(.8 * len(s))])
 
-        train_loader = dataloaders.get_dataloader(batch_size=args.n_batch,
-                                                  X=X_tr.astype(np.float32),
-                                                  Y=Y_tr.astype(np.float32),
-                                                  S=S_tr.astype(np.float32),
-                                                  transform=False)
+        train_loader = dataloaders.get_dataloader(batch_size=args.n_batch, obs=X_tr.astype(np.float32),
+                                                  labels=Y_tr.astype(np.float32), sources=S_tr.astype(np.float32))
 
-        val_loader = dataloaders.get_dataloader(batch_size=args.n_batch,
-                                                X=X_v.astype(np.float32),
-                                                Y=Y_v.astype(np.float32),
-                                                S=S_v.astype(np.float32),
-                                                transform=False)
+        val_loader = dataloaders.get_dataloader(batch_size=args.n_batch, obs=X_v.astype(np.float32),
+                                                labels=Y_v.astype(np.float32), sources=S_v.astype(np.float32))
 
     # create optimizer
     optimizer = optim.Adam(net.parameters(), lr=args.lr)

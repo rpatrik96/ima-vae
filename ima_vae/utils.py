@@ -97,8 +97,10 @@ def get_save_name(args):
         int(args.angle)) + "_diag_" + str(args.diag) + "_seed_" + str(args.seed) + "_beta_" + str(args.beta) + '.pth'
 
 
-def get_load_name(args, train=True):
-    if train:
+def get_load_name(args, train=None):
+    if train is None:
+        data = ""
+    elif train is True:
         data = "train_"
     else:
         data = "val_"
