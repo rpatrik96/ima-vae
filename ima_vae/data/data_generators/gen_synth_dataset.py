@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from jax import numpy as jnp
 from scipy.stats import ortho_group
-from utils import to_one_hot, cart2pol, scatterplot_variables, build_moebius_transform
+from ima_vae.data.utils import to_one_hot, cart2pol, scatterplot_variables, build_moebius_transform
 
 
 def leaky_ReLU_1d(d, negSlope):
@@ -55,13 +55,13 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
 
     # generate non-stationary data:
     Nobs = NsegmentObs * Nsegment  # total number of observations
-    Y = np.array([0] * Nobs)  # labels for each observation (populate below)
-    S = np.zeros((Nobs, Ncomp))
+    labels = np.array([0] * Nobs)  # labels for each observation (populate below)
+    sources = np.zeros((Nobs, Ncomp))
     if source == 'uniform':
         key = jax.random.PRNGKey(seed)
         key, subkey = jax.random.split(key)
-        S = jax.random.uniform(subkey, shape=(Nobs, Ncomp), minval=0.0, maxval=1.0)
-        S -= .5
+        sources = jax.random.uniform(subkey, shape=(Nobs, Ncomp), minval=0.0, maxval=1.0)
+        sources -= .5
 
     # if gaussian we adjust the variance within each segment in a non-stationary manner
     for seg in range(Nsegment):
@@ -70,33 +70,35 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
         if source == 'gaussian':
             mean = np.random.uniform(0, 0)
             var = np.random.uniform(0.01, 3)
-            S[segID, :] = np.random.normal(mean, var, (NsegmentObs, Ncomp))
+            sources[segID, :] = np.random.normal(mean, var, (NsegmentObs, Ncomp))
         elif source == 'laplace':
             mean = np.random.uniform(0, 0)
             var = np.random.uniform(0.01, 3)
-            S[segID, :] = np.random.laplace(mean, var, (NsegmentObs, Ncomp))
+            sources[segID, :] = np.random.laplace(mean, var, (NsegmentObs, Ncomp))
         elif source == 'beta':
             alpha = np.random.uniform(3, 11)
             beta = np.random.uniform(3, 11)
             key = jax.random.PRNGKey(seed)
             key, subkey = jax.random.split(key)
-            S[segID, :] = jax.random.beta(subkey, alpha, beta, (NsegmentObs, Ncomp))
-            S -= .5
-        Y[segID] = seg
+            sources[segID, :] = jax.random.beta(subkey, alpha, beta, (NsegmentObs, Ncomp))
+            sources -= .5
+        labels[segID] = seg
 
-    X = np.copy(S)
+    obs = np.copy(sources)
 
-    if mobius:
+
+
+    if mobius is True:
         # Plot the sources
         if Ncomp == 2:
-            _, colors = cart2pol(X[:, 0], X[:, 1])
-            scatterplot_variables(X, 'Sources (train)', colors=colors)
+            _, colors = cart2pol(obs[:, 0], obs[:, 1])
+            scatterplot_variables(obs, 'Sources (train)', colors=colors)
             plt.title('Ground Truth', fontsize=19)
             plt.savefig("Sources_mobius", dpi=150, bbox_inches='tight')
             plt.close()
         # Generate a random orthogonal matrix
-        A = ortho_group.rvs(dim=Ncomp)
-        A = jnp.array(A)
+        mixing_matrix = ortho_group.rvs(dim=Ncomp)
+        mixing_matrix = jnp.array(mixing_matrix)
         # Scalar
         alpha = 1.0
         # Two vectors with data dimensionality
@@ -109,39 +111,43 @@ def gen_data(Ncomp, Nlayer, Nsegment, NsegmentObs, orthog, seed, NonLin, source=
         b = jnp.zeros(Ncomp)  # a vector in \RR^D
         epsilon = 2
 
-        mixing, unmixing = build_moebius_transform(alpha, A, a, b, epsilon=epsilon)
+        mixing, unmixing = build_moebius_transform(alpha, mixing_matrix, a, b, epsilon=epsilon)
         mixing_batched = jax.vmap(mixing)
 
-        X = mixing_batched(X)
-        mean = jnp.mean(X, axis=0)
-        std = jnp.std(X, axis=0)
-        X -= mean
+        obs = mixing_batched(obs)
+        mean = jnp.mean(obs, axis=0)
+        std = jnp.std(obs, axis=0)
+        obs -= mean
 
         if Ncomp == 2:
-            scatterplot_variables(X, 'Observations (train)', colors=colors)
+            scatterplot_variables(obs, 'Observations (train)', colors=colors)
             plt.title('Observations', fontsize=19)
             plt.savefig("Observations_mobius", dpi=150, bbox_inches='tight')
             plt.close()
-        X = np.array(X)
-        S = np.array(S)
+        obs = np.array(obs)
+        sources = np.array(sources)
 
     else:
-        X = np.array(X)
-        S = np.array(S)
+        mixing = None
+        unmixing = None
+
+        obs = np.array(obs)
+        sources = np.array(sources)
         for l in range(nlayers):
             if orthog:
-                A = ortho_group.rvs(Ncomp)
+                mixing_matrix = ortho_group.rvs(Ncomp)
             else:
-                A = generateUniformMat(Ncomp)
+                mixing_matrix = generateUniformMat(Ncomp)
 
             # Apply non-linearity
             if NonLin == 'lrelu':
-                X = leaky_ReLU(X, negSlope)
+                obs = leaky_ReLU(obs, negSlope)
             elif NonLin == 'sigmoid':
-                X = sigmoidAct(X)
+                obs = sigmoidAct(obs)
             # Apply mixing:
-            X = np.dot(X, A)
+            obs = np.dot(obs, mixing_matrix)
     if one_hot_labels:
-        Y = to_one_hot(Y)[0]
+        labels = to_one_hot(labels)[0]
 
-    return X, Y, S
+    return np.asarray(obs.astype(np.float32)), np.asarray(labels.astype(np.float32)), np.asarray(
+        sources.astype(np.float32)), mixing, unmixing

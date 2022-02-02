@@ -1,11 +1,11 @@
 from typing import Optional
 
 import pytorch_lightning as pl
-from ima_vae.data.data_generators import ConditionalDataset
-from ima_vae.data.data_generators import gen_data
+from ima_vae.data.dataset import ConditionalDataset
+from ima_vae.data.data_generators import gen_synth_dataset
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
-from ima_vae.utils import get_load_name
+from ima_vae.data.utils import get_load_name
 import numpy as np
 
 from typing import Literal
@@ -34,7 +34,7 @@ class IMADataModule(pl.LightningDataModule):
 
             n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 
-            obs, labels, sources, self.mixing, self.unmixing = gen_data(Ncomp=self.hparams.latent_dim,
+            obs, labels, sources, self.mixing, self.unmixing = gen_synth_dataset.gen_data(Ncomp=self.hparams.latent_dim,
                                                                         Nlayer=self.hparams.n_layers,
                                                                         Nsegment=self.hparams.n_segments,
                                                                         NsegmentObs=n_obs_per_seg,

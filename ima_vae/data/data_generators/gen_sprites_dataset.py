@@ -9,54 +9,8 @@ from spriteworld import renderers as spriteworld_renderers
 from spriteworld import sprite_generators
 from spriteworld import tasks
 
-# Command line arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("--nclasses", type=int, default=1, help="Number of auxiliary variables")
-parser.add_argument("--nobs", type=int, default=10000, help="Number of observations in dataset")
-parser.add_argument("--lower", type=int, default=2, help="Lower bound on alpha and beta (Set to at least 2)")
-parser.add_argument("--upper", type=int, default=15, help="Upper bound on alpha and beta")
-parser.add_argument("--angle", type=bool, default=False, help="True if you want angle as a factor")
-parser.add_argument("--shape", type=bool, default=False, help="True if you want shape as a factor")
-args = parser.parse_args()
 
-
-def to_one_hot(x, m=None):
-    "batch one hot"
-    if type(x) is not list:
-        x = [x]
-    if m is None:
-        ml = []
-        for xi in x:
-            ml += [xi.max() + 1]
-        m = max(ml)
-    dtp = x[0].dtype
-    xoh = []
-    for i, xi in enumerate(x):
-        xoh += [np.zeros((xi.size, int(m)), dtype=dtp)]
-        xoh[i][np.arange(xi.size), xi.astype(np.int)] = 1
-    return xoh
-
-
-nfactors = 4
-beta_params = torch.Tensor(np.random.uniform(args.lower, args.upper, 2 * nfactors * args.nclasses)).view(args.nclasses,
-                                                                                                         nfactors,
-                                                                                                         2).numpy()
-angle_params = torch.zeros((args.nclasses, 2)).numpy()
-shape_probs = torch.zeros((args.nclasses, 3)).numpy()
-
-sname = "isprites_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
-    args.lower) + "_upper_" + str(args.upper)
-sname_train = "isprites_train_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
-    args.lower) + "_upper_" + str(args.upper)
-sname_val = "isprites_val_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
-    args.lower) + "_upper_" + str(args.upper)
-if args.angle:
-    nfactors += 1
-    sname += "_angle"
-if args.shape:
-    nfactors += 1
-    sname += "_shape"
-
+from ima_vae.data.utils import to_one_hot
 
 def random_sprites_config(beta_params, label):
     factor_list = [
@@ -143,10 +97,39 @@ def generate_isprites(num_classes, obs_per_class, lower, upper):
     return np.array(full_obs), np.array(full_labels)
 
 
-obs_per_class = int(args.nobs / args.nclasses)
-S = np.zeros((args.nclasses, obs_per_class, nfactors))
-X, Y = generate_isprites(args.nclasses, obs_per_class, args.lower, args.upper)
-S = torch.Tensor(S).flatten(0, 1).numpy().astype(np.float32)
-Y = to_one_hot(Y)[0].astype(np.float32)
+if __name__ == '__main__':
+    # Command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nclasses", type=int, default=1, help="Number of auxiliary variables")
+    parser.add_argument("--nobs", type=int, default=10000, help="Number of observations in dataset")
+    parser.add_argument("--lower", type=int, default=2, help="Lower bound on alpha and beta (Set to at least 2)")
+    parser.add_argument("--upper", type=int, default=15, help="Upper bound on alpha and beta")
+    parser.add_argument("--angle", type=bool, default=False, help="True if you want angle as a factor")
+    parser.add_argument("--shape", type=bool, default=False, help="True if you want shape as a factor")
+    args = parser.parse_args()
 
-np.savez_compressed(sname, X, Y, S, beta_params, angle_params, shape_probs)
+    nfactors = 4
+    beta_params = torch.Tensor(np.random.uniform(args.lower, args.upper, 2 * nfactors * args.nclasses)).view(
+        args.nclasses,
+        nfactors,
+        2).numpy()
+    angle_params = torch.zeros((args.nclasses, 2)).numpy()
+    shape_probs = torch.zeros((args.nclasses, 3)).numpy()
+
+    sname = "isprites_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
+        args.lower) + "_upper_" + str(args.upper)
+
+    if args.angle:
+        nfactors += 1
+        sname += "_angle"
+    if args.shape:
+        nfactors += 1
+        sname += "_shape"
+
+    obs_per_class = int(args.nobs / args.nclasses)
+    S = np.zeros((args.nclasses, obs_per_class, nfactors))
+    X, Y = generate_isprites(args.nclasses, obs_per_class, args.lower, args.upper)
+    S = torch.Tensor(S).flatten(0, 1).numpy().astype(np.float32)
+    Y = to_one_hot(Y)[0].astype(np.float32)
+
+    np.savez_compressed(sname, X, Y, S, beta_params, angle_params, shape_probs)
