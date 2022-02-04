@@ -16,6 +16,7 @@ from ima_vae.models.ivae import iVAE
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
+from ima_vae.data.datamodules import DatasetType
 
 
 # from disentanglement_lib.evaluation.metrics import mig, unsupervised_metrics, beta_vae, dci, factor_vae, irs, modularity_explicitness, unified_scores
@@ -51,7 +52,7 @@ class IMAModule(pl.LightningModule):
         self.save_hyperparameters()
 
         self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
-                                n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device)
+                                n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device, dataset=self.hparams.dataset)
 
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions
@@ -192,6 +193,7 @@ class IMAModule(pl.LightningModule):
         parser = parent_parser.add_argument_group("IMA")
 
         parser.add_argument("--activation", type=str, choices=get_args(ActivationType), default='none')
+        parser.add_argument("--dataset", type=str, choices=get_args(DatasetType), default='synth')
         parser.add_argument("--device", type=torch.device,
                             default=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
         # parser.add_argument('--latent_dim', type=int, default=2, help='Latent/data dimension')

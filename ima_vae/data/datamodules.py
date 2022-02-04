@@ -1,20 +1,23 @@
+from os.path import dirname, abspath
+from typing import Literal
 from typing import Optional
 
 import pytorch_lightning as pl
-from ima_vae.data.dataset import ConditionalDataset
-from ima_vae.data.data_generators import gen_synth_dataset
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
-from ima_vae.data.utils import get_load_name
-import numpy as np
 
-from typing import Literal
+from ima_vae.data.data_generators import gen_synth_dataset
+from ima_vae.data.dataset import ConditionalDataset
+from ima_vae.data.utils import load_sprites
 
-DatasetType = Literal["synth", "img"]
+DatasetType = Literal["synth", "image"]
+
+
 class IMADataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = "path/to/dir", batch_size: int = 64, orthog: bool = False, mobius: bool = False,
-                 linear: bool = False, latent_dim: int = 5, n_segments: int = 1, n_layers: int = 1, n_obs: int = 60e3,
-                 seed: int = 1, train_ratio: float = .7, val_ratio: float = 0.2, dataset:DatasetType="synth", **kwargs):
+    def __init__(self, data_dir: str = dirname(abspath(__file__)), batch_size: int = 64, orthog: bool = False,
+                 mobius: bool = False, linear: bool = False, latent_dim: int = 5, n_segments: int = 1,
+                 n_layers: int = 1, n_obs: int = 10e3, seed: int = 1, n_classes: int = 1, train_ratio: float = .7,
+                 val_ratio: float = 0.2, dataset: DatasetType = "synth", **kwargs):
         super().__init__()
 
         self.save_hyperparameters()
@@ -25,22 +28,19 @@ class IMADataModule(pl.LightningDataModule):
         # generate data
 
         if self.hparams.dataset == 'image':
-            lname = get_load_name(self.hparams.n_obs, self.hparams.n_classes)
-
-            obs = np.load(lname)['arr_0']
-            labels = np.load(lname)['arr_1']
-            sources = np.load(lname)['arr_2']
+            labels, obs, sources = load_sprites(self.hparams.n_obs, self.hparams.n_classes)
         elif self.hparams.dataset == 'synth':
 
             n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 
             obs, labels, sources, self.mixing, self.unmixing = gen_synth_dataset.gen_data(Ncomp=self.hparams.latent_dim,
-                                                                        Nlayer=self.hparams.n_layers,
-                                                                        Nsegment=self.hparams.n_segments,
-                                                                        NsegmentObs=n_obs_per_seg,
-                                                                        orthog=self.hparams.orthog,
-                                                                        mobius=self.hparams.mobius, seed=self.hparams.seed,
-                                                                        NonLin="none" if self.hparams.linear is True else 'lrelu')
+                                                                                          Nlayer=self.hparams.n_layers,
+                                                                                          Nsegment=self.hparams.n_segments,
+                                                                                          NsegmentObs=n_obs_per_seg,
+                                                                                          orthog=self.hparams.orthog,
+                                                                                          mobius=self.hparams.mobius,
+                                                                                          seed=self.hparams.seed,
+                                                                                          NonLin="none" if self.hparams.linear is True else 'lrelu')
 
         ima_full = ConditionalDataset(obs, labels, sources)
 

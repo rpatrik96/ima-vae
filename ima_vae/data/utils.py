@@ -1,3 +1,5 @@
+from os.path import join, dirname, abspath
+
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -75,3 +77,14 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
         return a + 1.0 / denom * (B @ numer.T).T
 
     return mixing_moebius_transform, unmixing_moebius_transform
+
+
+def load_sprites(n_obs, n_classes):
+    data_dir = join(dirname(abspath(__file__)), "sprites_data")
+    path = join(data_dir, get_load_name(n_obs, n_classes))
+
+    obs = np.load(path)['arr_0']
+    labels = np.load(path)['arr_1']
+    sources = np.load(path)['arr_2']
+
+    return labels, obs, sources

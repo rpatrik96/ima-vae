@@ -1,16 +1,17 @@
 import argparse
+from os import makedirs
+from os.path import dirname, abspath, join, isdir
 
 import numpy as np
 import torch
 
+from ima_vae.data.utils import to_one_hot
 from spriteworld import environment as spriteworld_environment
 from spriteworld import factor_distributions as distribs
 from spriteworld import renderers as spriteworld_renderers
 from spriteworld import sprite_generators
 from spriteworld import tasks
 
-
-from ima_vae.data.utils import to_one_hot
 
 def random_sprites_config(beta_params, label):
     factor_list = [
@@ -116,15 +117,19 @@ if __name__ == '__main__':
     angle_params = torch.zeros((args.nclasses, 2)).numpy()
     shape_probs = torch.zeros((args.nclasses, 3)).numpy()
 
-    sname = "isprites_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
+    sprites_dir = join(dirname(dirname(abspath(__file__))), "sprites_data")
+    if not isdir(sprites_dir):
+        makedirs(sprites_dir)
+
+    filename = "isprites_" + "nclasses_" + str(args.nclasses) + "_nobs_" + str(args.nobs) + "_lower_" + str(
         args.lower) + "_upper_" + str(args.upper)
 
     if args.angle:
         nfactors += 1
-        sname += "_angle"
+        filename += "_angle"
     if args.shape:
         nfactors += 1
-        sname += "_shape"
+        filename += "_shape"
 
     obs_per_class = int(args.nobs / args.nclasses)
     S = np.zeros((args.nclasses, obs_per_class, nfactors))
@@ -132,4 +137,4 @@ if __name__ == '__main__':
     S = torch.Tensor(S).flatten(0, 1).numpy().astype(np.float32)
     Y = to_one_hot(Y)[0].astype(np.float32)
 
-    np.savez_compressed(sname, X, Y, S, beta_params, angle_params, shape_probs)
+    np.savez_compressed(join(sprites_dir, filename), X, Y, S, beta_params, angle_params, shape_probs)

@@ -1,15 +1,14 @@
-from argparse import ArgumentParser
-
 import pytest
 from pytorch_lightning import Trainer, seed_everything
 
+from ima_vae.args import parse_args
 from ima_vae.data.datamodules import IMADataModule
 from ima_vae.runners.runner import IMAModule
 
 
 @pytest.fixture(autouse=True)
 def args():
-    parser = ArgumentParser()
+    parser = parse_args()
     # add model specific args
     parser = IMAModule.add_model_specific_args(parser)
     # add data specific args

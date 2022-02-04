@@ -41,11 +41,9 @@ class iVAE(nn.Module):
 
         if dataset == 'synth':
             self.encoder = nets.MLP(self.data_dim, self.post_dim, latent_dim * 10, n_layers, activation=activation,
-                                    slope=slope,
-                                    device=device)
+                                    slope=slope, device=device)
             self.decoder = nets.MLP(latent_dim, self.data_dim, latent_dim * 10, n_layers, activation=activation,
-                                    slope=slope,
-                                    device=device)
+                                    slope=slope, device=device)
 
         elif dataset == 'image':
             self.encoder, self.decoder = nets.get_sprites_models(self.latent_dim, self.post_dim, n_channels=3)
