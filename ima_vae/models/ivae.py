@@ -48,7 +48,7 @@ class iVAE(nn.Module):
                                     device=device)
 
         elif dataset == 'image':
-            self.encoder, self.decoder = nets.get_sprites_models(self.latent_dim, self.post_dim, n_classes=3)
+            self.encoder, self.decoder = nets.get_sprites_models(self.latent_dim, self.post_dim, n_channels=3)
 
         # decoder params
         self.decoder_var = .00001 * torch.ones(1).to(device)
@@ -146,6 +146,12 @@ class iVAE(nn.Module):
             log_qz_xu = self.posterior.log_pdf_full(latents, encoding_mean, self.cholesky)
 
         # prior likelihood
+        if self.prior.name == 'beta' or self.prior.name == 'uniform':
+            determ = torch.log(1. / (torch.sigmoid(latents) * (1. - torch.sigmoid(latents)))).sum(1)
+            log_qz_xu += determ
+            latents = torch.sigmoid(latents)
+
+
         # all prior parameters fixed if uniform
         if self.prior.name == 'uniform':
             log_pz_u = self.prior.log_pdf(latents, self.prior_mean, self.prior_var)
@@ -169,10 +175,7 @@ class iVAE(nn.Module):
                 else:
                     log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
 
-        if self.prior.name == 'beta' or self.prior.name == 'uniform':
-            determ = torch.log(1. / (torch.sigmoid(latents) * (1. - torch.sigmoid(latents)))).sum(1)
-            log_qz_xu += determ
-            latents = torch.sigmoid(latents)
+
 
         kl_loss = (log_pz_u - log_qz_xu).mean()
         rec_loss = log_px_z.mean()
