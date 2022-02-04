@@ -78,7 +78,7 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
 
     return mixing_moebius_transform, unmixing_moebius_transform
 
-
+from torchvision.transforms.functional import to_tensor
 def load_sprites(n_obs, n_classes):
     data_dir = join(dirname(abspath(__file__)), "sprites_data")
     path = join(data_dir, get_load_name(n_obs, n_classes))
@@ -87,4 +87,4 @@ def load_sprites(n_obs, n_classes):
     labels = np.load(path)['arr_1']
     sources = np.load(path)['arr_2']
 
-    return labels, obs, sources
+    return labels, to_tensor(obs), sources
