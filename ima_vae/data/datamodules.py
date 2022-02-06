@@ -3,6 +3,7 @@ from typing import Literal
 from typing import Optional
 
 import pytorch_lightning as pl
+import torchvision.transforms
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 
@@ -28,8 +29,10 @@ class IMADataModule(pl.LightningDataModule):
         # generate data
 
         if self.hparams.dataset == 'image':
+            transform = torchvision.transforms.ToTensor()
             labels, obs, sources = load_sprites(self.hparams.n_obs, self.hparams.n_classes)
         elif self.hparams.dataset == 'synth':
+            transform = None
 
             n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 
@@ -42,7 +45,7 @@ class IMADataModule(pl.LightningDataModule):
                                                                                           seed=self.hparams.seed,
                                                                                           NonLin="none" if self.hparams.linear is True else 'lrelu')
 
-        ima_full = ConditionalDataset(obs, labels, sources)
+        ima_full = ConditionalDataset(obs, labels, sources, transform=transform)
 
         # split
         train_len = int(self.hparams.train_ratio * self.hparams.n_obs)
