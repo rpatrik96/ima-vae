@@ -4,7 +4,9 @@ import imageio
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
+from torch import nn as nn
 from torch.autograd import functional
+from torch.autograd.functional import jacobian
 from torchvision.utils import save_image
 
 from ima_vae.data.utils import cart2pol, scatterplot_variables
@@ -103,3 +105,24 @@ def get_latent_interp(net):
 
         out = os.path.join(net.interp_dir, '{}.gif'.format(j))
         imageio.mimsave(out, images)
+
+
+def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
+    """
+    Calculate the Jacobian
+    :param model: the model to calculate the Jacobian of
+    :param latents: the inputs for evaluating the model
+    :return: n_out x n_in
+    """
+
+    # set to eval mode but remember original state
+    in_training: bool = model.training
+    model.eval()  # otherwise we will get 0 gradients
+
+    J = jacobian(lambda x: model.forward(x).sum(dim=0), latents).permute(1, 0, 2).abs().mean(0)
+
+    # set back to original mode
+    if in_training is True:
+        model.train()
+
+    return J

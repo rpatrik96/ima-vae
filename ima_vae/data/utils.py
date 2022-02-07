@@ -1,4 +1,5 @@
 from os.path import join, dirname, abspath
+from typing import Literal
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -88,3 +89,6 @@ def load_sprites(n_obs, n_classes):
     sources = np.load(path)['arr_2']
 
     return labels, obs, sources
+
+
+DatasetType = Literal["synth", "image"]

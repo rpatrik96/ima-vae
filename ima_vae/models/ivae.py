@@ -1,19 +1,13 @@
-from typing import Literal
-
 import torch
 from torch import nn
 
-ActivationType = Literal['lrelu', 'sigmoid', 'none']
-
+from ima_vae.models.utils import weights_init
 from ima_vae.distributions import Normal, Uniform, Beta
 
-from ima_vae.data.datamodules import DatasetType
+from ima_vae.data.utils import DatasetType
 
 from ima_vae.models import nets
 
-def weights_init(m):
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight.data)
 
 class iVAE(nn.Module):
     def __init__(self, latent_dim, data_dim, n_segments, n_classes, n_layers, hidden_dim, activation, device,
@@ -34,24 +28,21 @@ class iVAE(nn.Module):
         self.beta = beta
 
         self.setup_distributions(likelihood, posterior, prior, device, diag_posterior)
-
-
-
-        if dataset == 'synth':
-            self.encoder = nets.MLP(self.data_dim, self.post_dim, latent_dim * 10, n_layers, activation=activation,
-                                    slope=slope, device=device)
-            self.decoder = nets.MLP(latent_dim, self.data_dim, latent_dim * 10, n_layers, activation=activation,
-                                    slope=slope, device=device)
-
-        elif dataset == 'image':
-            self.encoder, self.decoder = nets.get_sprites_models(self.latent_dim, self.post_dim, n_channels=3)
-
-        # decoder params
-        self.decoder_var = .00001 * torch.ones(1).to(device)
+        self.setup_nets(dataset, device, n_layers, slope)
 
         self.interp_sample = None
         self.interp_dir = None
         self.apply(weights_init)
+
+    def setup_nets(self, dataset, device, n_layers, slope):
+        # decoder params
+        self.decoder_var = .00001 * torch.ones(1).to(device)
+
+        if dataset == 'synth':
+            self.encoder, self.decoder = nets.get_synth_models(self.data_dim, self.latent_dim, self.latent_dim,
+                                                               n_layers, self.activation, device, slope)
+        elif dataset == 'image':
+            self.encoder, self.decoder = nets.get_sprites_models(self.latent_dim, self.post_dim, n_channels=3)
 
     def setup_distributions(self, likelihood, posterior, prior, device, diag_posterior):
         # prior_params
@@ -67,7 +58,8 @@ class iVAE(nn.Module):
         else:
             self.prior = prior
         if self.prior.name != 'uniform':
-            self.conditioner = nets.MLP(self.n_classes, self.latent_dim * (2-bool(self.fix_prior)), self.latent_dim * 4, self.n_layers,
+            self.conditioner = nets.MLP(self.n_classes, self.latent_dim * (2 - bool(self.fix_prior)),
+                                        self.latent_dim * 4, self.n_layers,
                                         activation=self.activation, slope=self.slope,
                                         device=device)
 
@@ -151,7 +143,6 @@ class iVAE(nn.Module):
             log_qz_xu += determ
             latents = torch.sigmoid(latents)
 
-
         # all prior parameters fixed if uniform
         if self.prior.name == 'uniform':
             log_pz_u = self.prior.log_pdf(latents, self.prior_mean, self.prior_var)
@@ -174,8 +165,6 @@ class iVAE(nn.Module):
                                                   torch.ones((latents.shape[0], self.latent_dim)) * 11)
                 else:
                     log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
-
-
 
         kl_loss = (log_pz_u - log_qz_xu).mean()
         rec_loss = log_px_z.mean()

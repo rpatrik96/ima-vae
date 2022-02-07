@@ -3,7 +3,7 @@ from jax import jacfwd
 from scipy.stats import ortho_group
 
 from ima_vae.data.utils import build_moebius_transform
-from ima_vae.runners.runner import cima_kl_diagonality
+from ima_vae.metrics.cima import cima_kl_diagonality
 
 
 def test_moebius_orthogonality(args):

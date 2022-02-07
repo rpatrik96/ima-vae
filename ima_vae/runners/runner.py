@@ -5,42 +5,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 import torch
-import torch.nn as nn
 import wandb
 from disent.metrics._dci import _compute_dci
 from disent.metrics._sap import _compute_sap
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
+from ima_vae.metrics.cima import cima_kl_diagonality
 from ima_vae.metrics.mig import compute_mig_with_discrete_factors
-from ima_vae.models.ivae import ActivationType
+from ima_vae.models.utils import ActivationType
 from ima_vae.models.ivae import iVAE
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
-from ima_vae.data.datamodules import DatasetType
-
+from ima_vae.data.utils import DatasetType
 
 # from disentanglement_lib.evaluation.metrics import mig, unsupervised_metrics, beta_vae, dci, factor_vae, irs, modularity_explicitness, unified_scores
-
-
-def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
-    """
-    Calculate the Jacobian
-    :param model: the model to calculate the Jacobian of
-    :param latents: the inputs for evaluating the model
-    :return: n_out x n_in
-    """
-
-    # set to eval mode but remember original state
-    in_training: bool = model.training
-    model.eval()  # otherwise we will get 0 gradients
-
-    J = jacobian(lambda x: model.forward(x).sum(dim=0), latents).permute(1, 0, 2).abs().mean(0)
-
-    # set back to original mode
-    if in_training is True:
-        model.train()
-
-    return J
+from ima_vae.utils import calc_jacobian
 
 
 class IMAModule(pl.LightningModule):
@@ -225,16 +204,3 @@ class IMAModule(pl.LightningModule):
             wandb_logger.log({f"{panel_name}/latents": table})
 
 
-def cima_kl_diagonality(jacobian):
-    """
-    Calculates the IMA constrast. Able to handle jax and Pytorch objects as well
-
-    :param jacobian: jacobian matrix (jax or Pytorch)
-    :return:
-    """
-    jacobian_t_jacobian = jacobian.T @ jacobian
-
-    lib = torch if type(jacobian) is torch.Tensor else jnp
-
-    return 0.5 * (lib.linalg.slogdet(lib.diag(lib.diag(jacobian_t_jacobian)))[1] -
-                  lib.linalg.slogdet(jacobian_t_jacobian)[1])
