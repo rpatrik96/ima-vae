@@ -55,13 +55,13 @@ class IMADataModule(pl.LightningDataModule):
         return DataLoader(self.ima_train, shuffle=True, batch_size=self.hparams.batch_size)
 
     def val_dataloader(self):
-        return DataLoader(self.ima_val, shuffle=True, batch_size=self.hparams.batch_size)
+        return DataLoader(self.ima_val, shuffle=False, batch_size=self.hparams.batch_size)
 
     def test_dataloader(self):
-        return DataLoader(self.ima_test_pred, shuffle=True, batch_size=self.hparams.batch_size)
+        return DataLoader(self.ima_test_pred, shuffle=False, batch_size=self.hparams.batch_size)
 
     def predict_dataloader(self):
-        return DataLoader(self.ima_test_pred, shuffle=True, batch_size=self.hparams.batch_size)
+        return DataLoader(self.ima_test_pred, shuffle=False, batch_size=self.hparams.batch_size)
 
     def teardown(self, stage: Optional[str] = None):
         # Used to clean-up when the run is finished
