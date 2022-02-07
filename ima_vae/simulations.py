@@ -25,6 +25,10 @@ if __name__ == '__main__':
     if args.use_wandb:
         args.logger = WandbLogger(entity="ima-vae", project=args.project, notes=args.notes, tags=args.tags)
 
+
+    if args.dataset == "image":
+        args.latent_dim = 4
+
     dict_args = vars(args)
 
     # init the trainer like this

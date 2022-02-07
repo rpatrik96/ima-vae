@@ -35,9 +35,7 @@ class iVAE(nn.Module):
 
         self.setup_distributions(likelihood, posterior, prior, device, diag_posterior)
 
-        # prior_params
-        self.prior_mean = torch.zeros(1).to(device)
-        self.prior_var = torch.ones(1).to(device)
+
 
         if dataset == 'synth':
             self.encoder = nets.MLP(self.data_dim, self.post_dim, latent_dim * 10, n_layers, activation=activation,
@@ -56,6 +54,10 @@ class iVAE(nn.Module):
         self.apply(weights_init)
 
     def setup_distributions(self, likelihood, posterior, prior, device, diag_posterior):
+        # prior_params
+        self.prior_mean = torch.zeros(1).to(device)
+        self.prior_var = torch.ones(1).to(device)
+
         if prior == 'gaussian' or prior is None:
             self.prior = Normal(device=device, diag=True)
         elif prior == 'beta':
