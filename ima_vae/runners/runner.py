@@ -109,7 +109,9 @@ class IMAModule(pl.LightningModule):
                 table = wandb.Table(columns=[f"dim={i}" for i in range(self.hparams.latent_dim)])
                 imgs = []
                 for i in range(self.hparams.latent_dim):
-                    imgs.append(wandb.Image(plt.scatter(obs[:, i], rec[:, i], label=[f"obs_{i}", f"rec_{i}"])))
+                    fig = plt.figure()
+                    ax = fig.add_subplot(1, 1, 1)
+                    imgs.append(wandb.Image(ax.scatter(obs[:, i], rec[:, i], label=[f"obs_{i}", f"rec_{i}"])))
 
                 table.add_data(*imgs)
 
