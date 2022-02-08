@@ -88,7 +88,9 @@ def load_sprites(n_obs, n_classes):
     labels = np.load(path)['arr_1']
     sources = np.load(path)['arr_2']
 
-    return labels, obs, sources
+    mixing, unmixing = None, None
+
+    return labels, obs, sources, mixing, unmixing
 
 
 DatasetType = Literal["synth", "image"]

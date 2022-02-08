@@ -42,6 +42,11 @@ class IMADataModule(pl.LightningDataModule):
                                                                                           seed=self.hparams.seed,
                                                                                           NonLin="none" if self.hparams.linear is True else 'lrelu')
 
+        if self.mixing is None:
+            print(f"Mixing is unknown, a reduced set of metrics is calculated!")
+        if self.unmixing is None:
+            print(f"Unmixing is unknown, a reduced set of metrics is calculated!")
+
         ima_full = ConditionalDataset(obs, labels, sources, transform=transform)
 
         # split

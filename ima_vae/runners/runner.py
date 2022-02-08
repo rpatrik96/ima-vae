@@ -105,7 +105,7 @@ class IMAModule(pl.LightningModule):
             wandb_logger = self.logger.experiment
             # not images
 
-            if len(rec.shape) == 2:
+            if len(obs.shape) == 2:
                 table = wandb.Table(columns=[f"dim={i}" for i in range(self.hparams.latent_dim)])
                 imgs = []
                 for i in range(self.hparams.latent_dim):
@@ -141,25 +141,31 @@ class IMAModule(pl.LightningModule):
 
     def _log_true_data_likelihood(self, obs, panel_name, log=True):
         # todo: setup the base_log_pdf
-        true_data_likelihood = observed_data_likelihood(obs, lambda x: jnp.stack(
-            [jacfwd(self.trainer.datamodule.unmixing)(jnp.array(xx)) for xx in x]))
+        if self.trainer.datamodule.unmixing is not None:
+            true_data_likelihood = observed_data_likelihood(obs, lambda x: jnp.stack(
+                [jacfwd(self.trainer.datamodule.unmixing)(jnp.array(xx)) for xx in x]))
 
-        if log is True:
-            self.log(f"{panel_name}/true_data_likelihood", true_data_likelihood.mean().tolist())
+            if log is True:
+                self.log(f"{panel_name}/true_data_likelihood", true_data_likelihood.mean().tolist())
+        else:
+            true_data_likelihood = None
 
         return true_data_likelihood
 
     def _log_amari_dist(self, obs, panel_name, log=True):
 
-        J = lambda xx: jnp.array(
-            jacobian(lambda x: self.model.decoder.forward(x).sum(dim=0), torch.Tensor(xx.tolist())).permute(1, 0, 2))
+        if self.trainer.datamodule.mixing is not None or self.trainer.datamodule.unmixing is not None:
+            J = lambda xx: jnp.array(
+                jacobian(lambda x: self.model.decoder.forward(x).sum(dim=0), torch.Tensor(xx.tolist())).permute(1, 0, 2))
 
         amari_dist = jacobian_amari_distance(jnp.array(obs), J, lambda x: jnp.stack(
             [jacfwd(self.trainer.datamodule.mixing)(xx) for xx in x]),
                                              self.trainer.datamodule.unmixing)
 
-        if log is True:
-            self.log(f"{panel_name}/amari_dist", amari_dist.tolist())
+            if log is True:
+                self.log(f"{panel_name}/amari_dist", amari_dist.tolist())
+        else:
+            amari_dist = None
 
         return amari_dist
 
