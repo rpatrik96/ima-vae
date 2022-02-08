@@ -95,9 +95,9 @@ def get_sprites_models(z_dim, post_dim, n_channels=3):
 
 
 def get_synth_models(data_dim, latent_dim, post_dim, n_layers, activation, device, slope):
-    encoder = nets.MLP(data_dim, post_dim, latent_dim * 10, n_layers, activation=activation,
+    encoder = MLP(data_dim, post_dim, latent_dim * 10, n_layers, activation=activation,
                             slope=slope, device=device)
-    decoder = nets.MLP(latent_dim, data_dim, latent_dim * 10, n_layers, activation=activation,
+    decoder = MLP(latent_dim, data_dim, latent_dim * 10, n_layers, activation=activation,
                             slope=slope, device=device)
 
     return encoder, decoder

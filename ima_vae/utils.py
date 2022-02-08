@@ -6,7 +6,6 @@ import torch
 from matplotlib import pyplot as plt
 from torch import nn as nn
 from torch.autograd import functional
-from torch.autograd.functional import jacobian
 from torchvision.utils import save_image
 
 from ima_vae.data.utils import cart2pol, scatterplot_variables
@@ -109,20 +108,32 @@ def get_latent_interp(net):
 
 def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
     """
-    Calculate the Jacobian
+    Calculate the Jacobian more efficiently than ` torch.autograd.functional.jacobian`
     :param model: the model to calculate the Jacobian of
     :param latents: the inputs for evaluating the model
-    :return: n_out x n_in
+    :return: B x n_out x n_in
     """
+
+    jacob = []
+    input_vars = latents.clone().requires_grad_(True)
 
     # set to eval mode but remember original state
     in_training: bool = model.training
     model.eval()  # otherwise we will get 0 gradients
+    with torch.set_grad_enabled(True):
 
-    J = jacobian(lambda x: model.forward(x).sum(dim=0), latents).permute(1, 0, 2).abs().mean(0)
+        output_vars = model(input_vars)
+
+        for i in range(output_vars.shape[1]):
+            jacob.append(torch.autograd.grad(output_vars[:, i:i + 1], input_vars, create_graph=True,
+                                             grad_outputs=torch.ones(output_vars[:, i:i + 1].shape).to(
+                                                 output_vars.device))[
+                             0])
+
+        jacobian = torch.stack(jacob, 1)
 
     # set back to original mode
     if in_training is True:
         model.train()
 
-    return J
+    return jacobian.mean(0)

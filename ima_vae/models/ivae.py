@@ -39,7 +39,7 @@ class iVAE(nn.Module):
         self.decoder_var = .00001 * torch.ones(1).to(device)
 
         if dataset == 'synth':
-            self.encoder, self.decoder = nets.get_synth_models(self.data_dim, self.latent_dim, self.latent_dim,
+            self.encoder, self.decoder = nets.get_synth_models(self.data_dim, self.latent_dim, self.post_dim,
                                                                n_layers, self.activation, device, slope)
         elif dataset == 'image':
             self.encoder, self.decoder = nets.get_sprites_models(self.latent_dim, self.post_dim, n_channels=3)
@@ -173,7 +173,7 @@ class iVAE(nn.Module):
             latent_stat = self._latent_statistics(encoding_mean, encoding_logvar.exp())
 
         return rec_loss + self.beta * kl_loss, latents, rec_loss, kl_loss, None if log is False else latent_stat, None if reconstruction is False else \
-            latents
+            reconstructions
 
     def _latent_statistics(self, encoding, enc_variance) -> dict:
 

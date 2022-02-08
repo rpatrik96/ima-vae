@@ -27,7 +27,7 @@ class IMADataModule(pl.LightningDataModule):
 
         if self.hparams.dataset == 'image':
             transform = torchvision.transforms.ToTensor()
-            labels, obs, sources = load_sprites(self.hparams.n_obs, self.hparams.n_classes)
+            labels, obs, sources, self.mixing, self.unmixing = load_sprites(self.hparams.n_obs, self.hparams.n_classes)
         elif self.hparams.dataset == 'synth':
             transform = None
 

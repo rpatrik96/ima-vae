@@ -158,9 +158,9 @@ class IMAModule(pl.LightningModule):
             J = lambda xx: jnp.array(
                 jacobian(lambda x: self.model.decoder.forward(x).sum(dim=0), torch.Tensor(xx.tolist())).permute(1, 0, 2))
 
-        amari_dist = jacobian_amari_distance(jnp.array(obs), J, lambda x: jnp.stack(
-            [jacfwd(self.trainer.datamodule.mixing)(xx) for xx in x]),
-                                             self.trainer.datamodule.unmixing)
+            amari_dist = jacobian_amari_distance(jnp.array(obs), J, lambda x: jnp.stack(
+                [jacfwd(self.trainer.datamodule.mixing)(xx) for xx in x]),
+                                                 self.trainer.datamodule.unmixing)
 
             if log is True:
                 self.log(f"{panel_name}/amari_dist", amari_dist.tolist())
