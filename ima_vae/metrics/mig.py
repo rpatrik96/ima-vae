@@ -40,7 +40,7 @@ def get_prediction_score(mus: np.array, ys: np.array, discrete: bool) -> float:
             score = 1 - (np.sqrt(np.mean((y - y_pred) ** 2)) / np.std(y))
             return np.clip(score, 0, 1)
 
-    return get_score(ys_val, ys_val_predictions), get_score(ys_test, ys_test_predictions)
+    return get_score(ys_val.numpy(), ys_val_predictions), get_score(ys_test.numpy(), ys_test_predictions)
 
 
 def mutual_information(mus: np.array, ys: np.array, discrete: List[bool]) -> Tuple[np.array]:
@@ -85,4 +85,4 @@ def compute_mig_with_discrete_factors(mus: np.array, ys: np.array, discrete: Lis
     mig_val = sorted_mi_val[0, :] - sorted_mi_val[1, :]
     mig_test = sorted_mi_test[0, :] - sorted_mi_test[1, :]
 
-    return {'mig_val': mig_val, 'mig_test': mig_test}
+    return {**{f'mig_val_{i}': m for i, m in enumerate(mig_val)}, **{f'mig_test_{i}': m for i,m in enumerate(mig_test)}}

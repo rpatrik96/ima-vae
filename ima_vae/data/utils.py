@@ -82,7 +82,7 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
 
 def load_sprites(n_obs, n_classes):
     data_dir = join(dirname(abspath(__file__)), "sprites_data")
-    path = join(data_dir, get_load_name(n_obs, n_classes))
+    path = join(data_dir, filename:=get_load_name(n_obs, n_classes))
 
     obs = np.load(path)['arr_0']
     labels = np.load(path)['arr_1']
@@ -90,7 +90,13 @@ def load_sprites(n_obs, n_classes):
 
     mixing, unmixing = None, None
 
-    return labels, obs, sources, mixing, unmixing
+    discrete_list = [False]*4
+    if "angle" in filename:
+        discrete_list.append(True)
+    if "shape" in filename:
+        discrete_list.append(False)
+
+    return labels, obs, sources, mixing, unmixing, discrete_list
 
 
 DatasetType = Literal["synth", "image"]

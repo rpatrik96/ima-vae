@@ -1,6 +1,5 @@
 from typing import get_args, List
 
-import ima_vae.metrics
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
@@ -8,16 +7,17 @@ import torch
 import wandb
 from disent.metrics._dci import _compute_dci
 from disent.metrics._sap import _compute_sap
-from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
-from ima_vae.metrics.cima import cima_kl_diagonality
-from ima_vae.metrics.mig import compute_mig_with_discrete_factors
-from ima_vae.models.utils import ActivationType
-from ima_vae.models.ivae import iVAE
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
-from ima_vae.data.utils import DatasetType
 
+import ima_vae.metrics
+from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
+from ima_vae.data.utils import DatasetType
+from ima_vae.metrics.cima import cima_kl_diagonality
+from ima_vae.metrics.mig import compute_mig_with_discrete_factors
+from ima_vae.models.ivae import iVAE
+from ima_vae.models.utils import ActivationType
 # from disentanglement_lib.evaluation.metrics import mig, unsupervised_metrics, beta_vae, dci, factor_vae, irs, modularity_explicitness, unified_scores
 from ima_vae.utils import calc_jacobian
 
@@ -31,7 +31,8 @@ class IMAModule(pl.LightningModule):
         self.save_hyperparameters()
 
         self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
-                                n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device, dataset=self.hparams.dataset)
+                                n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device,
+                                dataset=self.hparams.dataset)
 
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions
@@ -43,9 +44,6 @@ class IMAModule(pl.LightningModule):
         neg_elbo = elbo.mul(-1)
 
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, "Metrics/train")
-
-        # todo: dataset needs a discrete list
-        # self._log_disentanglement_metrics(DisentDataset(self.trainer.datamodule.gt_ds), "test")
 
         return neg_elbo
 
@@ -72,13 +70,15 @@ class IMAModule(pl.LightningModule):
         ys_train, ys_test = sources[:num_train, :], sources[num_train:, :]
 
         sap: dict = _compute_sap(mus_train, ys_train, mus_test, ys_test, continuous_factors)
-        dci: dict = _compute_dci(mus_train, ys_train, mus_test, ys_test)
+        self.log(f"{panel_name}/sap", sap)
+
         # uses train-val-test splits of 0.8-0.1-0.1
         mig: dict = compute_mig_with_discrete_factors(predicted_latents, sources, discrete_list)
-
         self.log(f"{panel_name}/mig", mig)
-        self.log(f"{panel_name}/dci", dci)
-        self.log(f"{panel_name}/sap", sap)
+
+        if continuous_factors is False:
+            dci: dict = _compute_dci(mus_train, ys_train, mus_test, ys_test)
+            self.log(f"{panel_name}/dci", dci)
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
@@ -95,6 +95,8 @@ class IMAModule(pl.LightningModule):
         self._log_true_data_likelihood(obs, panel_name)
         self._log_latents(latent, panel_name)
         self._log_reconstruction(obs, reconstruction, panel_name)
+        self._log_disentanglement_metrics(sources, latent, self.trainer.datamodule.discrete_list, panel_name,
+                                          continuous_factors=False in self.trainer.datamodule.discrete_list)
 
         return neg_elbo
 
@@ -158,7 +160,8 @@ class IMAModule(pl.LightningModule):
 
         if self.trainer.datamodule.mixing is not None or self.trainer.datamodule.unmixing is not None:
             J = lambda xx: jnp.array(
-                jacobian(lambda x: self.model.decoder.forward(x).sum(dim=0), torch.Tensor(xx.tolist())).permute(1, 0, 2))
+                jacobian(lambda x: self.model.decoder.forward(x).sum(dim=0), torch.Tensor(xx.tolist())).permute(1, 0,
+                                                                                                                2))
 
             amari_dist = jacobian_amari_distance(jnp.array(obs), J, lambda x: jnp.stack(
                 [jacfwd(self.trainer.datamodule.mixing)(xx) for xx in x]),
@@ -210,5 +213,3 @@ class IMAModule(pl.LightningModule):
                 table.add_data(*imgs)
 
             wandb_logger.log({f"{panel_name}/latents": table})
-
-

@@ -27,20 +27,21 @@ class IMADataModule(pl.LightningDataModule):
 
         if self.hparams.dataset == 'image':
             transform = torchvision.transforms.ToTensor()
-            labels, obs, sources, self.mixing, self.unmixing = load_sprites(self.hparams.n_obs, self.hparams.n_classes)
+            labels, obs, sources, self.mixing, self.unmixing, self.discrete_list = load_sprites(self.hparams.n_obs, self.hparams.n_classes)
         elif self.hparams.dataset == 'synth':
             transform = None
 
             n_obs_per_seg = int(self.hparams.n_obs / self.hparams.n_segments)
 
-            obs, labels, sources, self.mixing, self.unmixing = gen_synth_dataset.gen_data(Ncomp=self.hparams.latent_dim,
-                                                                                          Nlayer=self.hparams.n_layers,
-                                                                                          Nsegment=self.hparams.n_segments,
-                                                                                          NsegmentObs=n_obs_per_seg,
-                                                                                          orthog=self.hparams.orthog,
-                                                                                          mobius=self.hparams.mobius,
-                                                                                          seed=self.hparams.seed,
-                                                                                          NonLin="none" if self.hparams.linear is True else 'lrelu')
+            obs, labels, sources, self.mixing, self.unmixing, self.discrete_list = gen_synth_dataset.gen_data(
+                num_dim=self.hparams.latent_dim,
+                num_layer=self.hparams.n_layers,
+                num_segment=self.hparams.n_segments,
+                num_segment_obs=n_obs_per_seg,
+                orthog=self.hparams.orthog,
+                mobius=self.hparams.mobius,
+                seed=self.hparams.seed,
+                nonlin="none" if self.hparams.linear is True else 'lrelu')
 
         if self.mixing is None:
             print(f"Mixing is unknown, a reduced set of metrics is calculated!")
