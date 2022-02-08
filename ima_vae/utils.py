@@ -122,7 +122,7 @@ def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
     model.eval()  # otherwise we will get 0 gradients
     with torch.set_grad_enabled(True):
 
-        output_vars = model(input_vars)
+        output_vars = model(input_vars).flatten(1)
 
         for i in range(output_vars.shape[1]):
             jacob.append(torch.autograd.grad(output_vars[:, i:i + 1], input_vars, create_graph=True,
