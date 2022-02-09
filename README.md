@@ -1,3 +1,8 @@
+```bash
+ python3 ima_vae/cli.py fit --help
+```
+
+
 ### Deep learning project seed
 Use this seed to start new deep learning / ML projects.
 

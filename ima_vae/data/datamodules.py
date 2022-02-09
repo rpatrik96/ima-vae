@@ -14,20 +14,37 @@ from ima_vae.data.utils import load_sprites, DatasetType
 class IMADataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str = dirname(abspath(__file__)), batch_size: int = 64, orthog: bool = False,
                  mobius: bool = False, linear: bool = False, latent_dim: int = 5, n_segments: int = 1,
-                 n_layers: int = 1, n_obs: int = 10e3, seed: int = 1, n_classes: int = 1, train_ratio: float = .7,
+                 n_layers: int = 1, n_obs: int = int(10e3), seed: int = 1, n_classes: int = 1, train_ratio: float = .7,
                  val_ratio: float = 0.2, dataset: DatasetType = "synth", **kwargs):
+        """
+
+        :param data_dir: data directory
+        :param batch_size: batch size
+        :param orthog: orthogonality flag for mixing
+        :param mobius: flag for the Moebius transform
+        :param linear: flag for activation linearity
+        :param latent_dim: latent dimension
+        :param n_segments: number of segments (for iVAE-like conditional data)
+        :param n_layers: number of layers (if mixing is done with an MLP)
+        :param n_obs: number of observations
+        :param seed: seed
+        :param n_classes: number of classes
+        :param train_ratio: train ratio
+        :param val_ratio: validation ratio
+        :param dataset: dataset specifier, can be any of ["synth", "image"]
+        :param kwargs:
+        """
         super().__init__()
 
         self.save_hyperparameters()
-
-        print(f"{self.hparams.batch_size=}")
 
     def setup(self, stage: Optional[str] = None):
         # generate data
 
         if self.hparams.dataset == 'image':
             transform = torchvision.transforms.ToTensor()
-            labels, obs, sources, self.mixing, self.unmixing, self.discrete_list = load_sprites(self.hparams.n_obs, self.hparams.n_classes)
+            labels, obs, sources, self.mixing, self.unmixing, self.discrete_list = load_sprites(self.hparams.n_obs,
+                                                                                                self.hparams.n_classes)
         elif self.hparams.dataset == 'synth':
             transform = None
 
@@ -42,6 +59,8 @@ class IMADataModule(pl.LightningDataModule):
                 mobius=self.hparams.mobius,
                 seed=self.hparams.seed,
                 nonlin="none" if self.hparams.linear is True else 'lrelu')
+        else:
+            raise ValueError
 
         if self.mixing is None:
             print(f"Mixing is unknown, a reduced set of metrics is calculated!")

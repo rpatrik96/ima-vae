@@ -24,8 +24,21 @@ from ima_vae.utils import calc_jacobian
 
 class IMAModule(pl.LightningModule):
 
-    def __init__(self, device: str, activation: ActivationType, latent_dim: int = 2, n_segments: int = 1,
-                 n_layers: int = 1, lr: float = 1e-4, n_classes=1, **kwargs):
+    def __init__(self, device: str = 'cuda' if torch.cuda.is_available() else 'cpu', activation: ActivationType = 'none', latent_dim: int = 2, n_segments: int = 1,
+                 n_layers: int = 1, lr: float = 1e-4, n_classes:int=1, dataset: DatasetType='synth', log_latents:bool=False, log_reconstruction:bool=False, **kwargs):
+        """
+
+        :param device: device to run on
+        :param activation: activation function, any on 'lrelu', 'sigmoid', 'none'
+        :param latent_dim: dimension of the latent space
+        :param n_segments: number of segments (for iVAE-like data, currently unused)
+        :param n_layers: number of layers
+        :param lr: learning rate
+        :param n_classes: number of classes
+        :param log_latents: flag to log latents
+        :param log_reconstruction: flag to log reconstructions
+        :param kwargs:
+        """
         super().__init__()
 
         self.save_hyperparameters()
@@ -33,6 +46,9 @@ class IMAModule(pl.LightningModule):
         self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
                                 n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device,
                                 dataset=self.hparams.dataset)
+
+        if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True :
+            self.logger.watch(self.model, log="all", log_freq=250)
 
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions
@@ -101,7 +117,7 @@ class IMAModule(pl.LightningModule):
         return neg_elbo
 
     def _log_reconstruction(self, obs, rec, panel_name, max_img_num: int = 5):
-        if rec is not None and self.hparams.use_wandb is True and self.hparams.log_reconstruction is True and isinstance(
+        if rec is not None and  self.hparams.log_reconstruction is True and isinstance(
                 self.logger,
                 pl.loggers.wandb.WandbLogger) is True:
             wandb_logger = self.logger.experiment
@@ -197,18 +213,20 @@ class IMAModule(pl.LightningModule):
 
     def _log_latents(self, latent, panel_name):
 
-        if self.hparams.use_wandb is True and self.hparams.log_latents is True and isinstance(self.logger,
+        if self.logger is not None and self.hparams.log_latents is True and isinstance(self.logger,
                                                                                               pl.loggers.wandb.WandbLogger) is True:
 
             wandb_logger = self.logger.experiment
             table = wandb.Table(columns=["Idx"] + [f"latent_{i}" for i in range(self.hparams.latent_dim)])
-            for i in range(self.hparams.latent_dim - 1):
-                imgs = [i]
-                for j in range(i, self.hparams.latent_dim):
+            for row in range(self.hparams.latent_dim-1):
+                imgs = [row]
+                imgs += ([None] * (row+1))
+                for col in range(row+1, self.hparams.latent_dim):
+                    fig = plt.figure()
+                    ax = fig.add_subplot(1, 1, 1)
                     imgs.append(
-                        wandb.Image(plt.scatter(latent[:, i], latent[:, j], label=[f"latent_{i}", f"latent_{j}"])))
+                        wandb.Image(ax.scatter(latent[:, row], latent[:, col], label=[f"latent_{row}", f"latent_{col}"])))
 
-                imgs += ([None] * (i))
 
                 table.add_data(*imgs)
 
