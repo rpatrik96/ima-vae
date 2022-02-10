@@ -67,7 +67,6 @@ trainer:
   stochastic_weight_avg: false
   terminate_on_nan: null
 model:
-  device: cpu
   activation: none
   n_segments: 1
   n_layers: 1
@@ -77,7 +76,6 @@ model:
   log_latents: false
   log_reconstruction: false
 data:
-  data_dir: /Users/patrik.reizinger/Documents/GitHub/ima-vae/ima_vae/data
   batch_size: 64
   orthog: false
   mobius: true

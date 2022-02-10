@@ -10,7 +10,7 @@ from disent.metrics._sap import _compute_sap
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
-
+from ima_vae.metrics.conformal import conformal_contrast, col_norm_var
 import ima_vae.metrics
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
 from ima_vae.data.utils import DatasetType
@@ -24,8 +24,10 @@ from ima_vae.utils import calc_jacobian
 
 class IMAModule(pl.LightningModule):
 
-    def __init__(self, device: str = 'cuda' if torch.cuda.is_available() else 'cpu', activation: ActivationType = 'none', latent_dim: int = 2, n_segments: int = 1,
-                 n_layers: int = 1, lr: float = 1e-4, n_classes:int=1, dataset: DatasetType='synth', log_latents:bool=False, log_reconstruction:bool=False, **kwargs):
+    def __init__(self, device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
+                 activation: ActivationType = 'none', latent_dim: int = 2, n_segments: int = 1,
+                 n_layers: int = 1, lr: float = 1e-4, n_classes: int = 1, dataset: DatasetType = 'synth',
+                 log_latents: bool = False, log_reconstruction: bool = False, **kwargs):
         """
 
         :param device: device to run on
@@ -47,7 +49,7 @@ class IMAModule(pl.LightningModule):
                                 n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device,
                                 dataset=self.hparams.dataset)
 
-        if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True :
+        if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
             self.logger.watch(self.model, log="all", log_freq=250)
 
     def forward(self, obs, labels):
@@ -117,7 +119,7 @@ class IMAModule(pl.LightningModule):
         return neg_elbo
 
     def _log_reconstruction(self, obs, rec, panel_name, max_img_num: int = 5):
-        if rec is not None and  self.hparams.log_reconstruction is True and isinstance(
+        if rec is not None and self.hparams.log_reconstruction is True and isinstance(
                 self.logger,
                 pl.loggers.wandb.WandbLogger) is True:
             wandb_logger = self.logger.experiment
@@ -156,6 +158,8 @@ class IMAModule(pl.LightningModule):
 
         if log is True:
             self.log(f"{panel_name}/cima", cima)
+            self.log(f"{panel_name}/conformal_contrast", conformal_contrast(unmix_jacobian))
+            self.log(f"{panel_name}/col_norm_var", col_norm_var(unmix_jacobian))
 
         return cima
 
@@ -214,19 +218,19 @@ class IMAModule(pl.LightningModule):
     def _log_latents(self, latent, panel_name):
 
         if self.logger is not None and self.hparams.log_latents is True and isinstance(self.logger,
-                                                                                              pl.loggers.wandb.WandbLogger) is True:
+                                                                                       pl.loggers.wandb.WandbLogger) is True:
 
             wandb_logger = self.logger.experiment
             table = wandb.Table(columns=["Idx"] + [f"latent_{i}" for i in range(self.hparams.latent_dim)])
-            for row in range(self.hparams.latent_dim-1):
+            for row in range(self.hparams.latent_dim - 1):
                 imgs = [row]
-                imgs += ([None] * (row+1))
-                for col in range(row+1, self.hparams.latent_dim):
+                imgs += ([None] * (row + 1))
+                for col in range(row + 1, self.hparams.latent_dim):
                     fig = plt.figure()
                     ax = fig.add_subplot(1, 1, 1)
                     imgs.append(
-                        wandb.Image(ax.scatter(latent[:, row], latent[:, col], label=[f"latent_{row}", f"latent_{col}"])))
-
+                        wandb.Image(
+                            ax.scatter(latent[:, row], latent[:, col], label=[f"latent_{row}", f"latent_{col}"])))
 
                 table.add_data(*imgs)
 

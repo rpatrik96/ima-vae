@@ -2,7 +2,7 @@ import torch
 from jax import numpy as jnp
 
 
-def cima_kl_diagonality(jacobian):
+def cima_kl_diagonality(jacobian:torch.Tensor):
     """
     Calculates the IMA constrast. Able to handle jax and Pytorch objects as well
 
