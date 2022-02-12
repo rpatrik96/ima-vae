@@ -32,7 +32,7 @@ class iVAE(nn.Module):
 
     def _setup_nets(self, dataset, device, n_layers, slope):
         # decoder params
-        self.decoder_var = .00001 * torch.ones(1).to(device)
+        self.decoder_var = .000001 * torch.ones(1).to(device)
 
         if dataset == 'synth':
             self.encoder, self.decoder = nets.get_synth_models(self.data_dim, self.latent_dim, self.post_dim,
@@ -116,10 +116,10 @@ class iVAE(nn.Module):
         :param x: observations
         :return:
         """
-        enc_logvar, enc_mean, latents, log_var_post = self._encode(x)
+        enc_logvar, enc_mean, latents, log_qz_xu = self._encode(x)
 
         reconstructions = self.decoder(latents)
-        return enc_mean, enc_logvar, latents, reconstructions, log_var_post
+        return enc_mean, enc_logvar, latents, reconstructions, log_qz_xu
 
     def neg_elbo(self, x, u, log=True, reconstruction: bool = False):
         """

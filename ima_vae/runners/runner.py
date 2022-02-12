@@ -25,8 +25,8 @@ from ima_vae.utils import calc_jacobian
 class IMAModule(pl.LightningModule):
 
     def __init__(self, device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
-                 activation: ActivationType = 'none', latent_dim: int = 2, n_segments: int = 1,
-                 n_layers: int = 1, lr: float = 1e-4, n_classes: int = 1, dataset: DatasetType = 'synth',
+                 activation: ActivationType = 'lrelu', latent_dim: int = 2, n_segments: int = 1,
+                 n_layers: int = 2, lr: float = 1e-4, n_classes: int = 1, dataset: DatasetType = 'synth',
                  log_latents: bool = False, log_reconstruction: bool = False, prior: str = 'uniform', **kwargs):
         """
 
@@ -61,7 +61,10 @@ class IMAModule(pl.LightningModule):
         obs, labels, sources = batch
         neg_elbo, z_est, rec_loss, kl_loss, latent_stat, _ = self.model.neg_elbo(obs, labels)
 
-        self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, "Metrics/train")
+        panel_name = "Metrics/train"
+        self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
+        with torch.no_grad():
+            self._log_mcc(z_est, sources, panel_name)
 
         return neg_elbo
 
@@ -107,13 +110,13 @@ class IMAModule(pl.LightningModule):
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
         self._log_mcc(latent, sources, panel_name)
-        self._log_cima(latent, panel_name)
-        self._log_amari_dist(obs, panel_name)
-        self._log_true_data_likelihood(obs, panel_name)
-        self._log_latents(latent, panel_name)
-        self._log_reconstruction(obs, reconstruction, panel_name)
-        self._log_disentanglement_metrics(sources, latent, self.trainer.datamodule.discrete_list, panel_name,
-                                          continuous_factors=False in self.trainer.datamodule.discrete_list)
+        # self._log_cima(latent, panel_name)
+        # self._log_amari_dist(obs, panel_name)
+        # self._log_true_data_likelihood(obs, panel_name)
+        # self._log_latents(latent, panel_name)
+        # self._log_reconstruction(obs, reconstruction, panel_name)
+        # self._log_disentanglement_metrics(sources, latent, self.trainer.datamodule.discrete_list, panel_name,
+        #                                   continuous_factors=False in self.trainer.datamodule.discrete_list)
 
         return neg_elbo
 
