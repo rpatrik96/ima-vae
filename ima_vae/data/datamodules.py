@@ -14,7 +14,7 @@ from ima_vae.data.utils import load_sprites, DatasetType
 class IMADataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str = dirname(abspath(__file__)), batch_size: int = 64, orthog: bool = False,
                  mobius: bool = False, linear: bool = False, latent_dim: int = 5, n_segments: int = 1,
-                 n_layers: int = 1, n_obs: int = int(10e3), seed: int = 1, n_classes: int = 1, train_ratio: float = .7,
+                 mixing_layers: int = 1, n_obs: int = int(10e3), seed: int = 1, n_classes: int = 1, train_ratio: float = .7,
                  val_ratio: float = 0.2, dataset: DatasetType = "synth", **kwargs):
         """
 
@@ -25,7 +25,7 @@ class IMADataModule(pl.LightningDataModule):
         :param linear: flag for activation linearity
         :param latent_dim: latent dimension
         :param n_segments: number of segments (for iVAE-like conditional data)
-        :param n_layers: number of layers (if mixing is done with an MLP)
+        :param mixing_layers: number of layers (if mixing is done with an MLP)
         :param n_obs: number of observations
         :param seed: seed
         :param n_classes: number of classes
@@ -52,7 +52,7 @@ class IMADataModule(pl.LightningDataModule):
 
             obs, labels, sources, self.mixing, self.unmixing, self.discrete_list = gen_synth_dataset.gen_data(
                 num_dim=self.hparams.latent_dim,
-                num_layer=self.hparams.n_layers,
+                num_layer=self.hparams.mixing_layers,
                 num_segment=self.hparams.n_segments,
                 num_segment_obs=n_obs_per_seg,
                 orthog=self.hparams.orthog,
