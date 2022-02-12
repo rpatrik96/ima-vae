@@ -26,7 +26,7 @@ class IMAModule(pl.LightningModule):
 
     def __init__(self, device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
                  activation: ActivationType = 'lrelu', latent_dim: int = 2, n_segments: int = 1,
-                 n_layers: int = 2, lr: float = 1e-4, n_classes: int = 1, dataset: DatasetType = 'synth',
+                 n_layers: int = 2, lr: float = 1e-3, n_classes: int = 1, dataset: DatasetType = 'synth',
                  log_latents: bool = False, log_reconstruction: bool = False, prior: str = 'uniform', **kwargs):
         """
 
