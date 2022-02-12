@@ -47,8 +47,8 @@ class IMAModule(pl.LightningModule):
         self.save_hyperparameters()
 
         self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
-                                n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device,
-                                dataset=self.hparams.dataset, prior=prior)
+                                n_layers=n_layers, activation=activation, device=device, prior=prior,
+                                dataset=self.hparams.dataset)
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
             self.logger.watch(self.model, log="all", log_freq=250)

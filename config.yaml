@@ -70,7 +70,7 @@ model:
   activation: none
   n_segments: 1
   n_layers: 3
-  lr: 0.0001
+  lr: 0.001
   n_classes: 1
   dataset: synth
   log_latents: false

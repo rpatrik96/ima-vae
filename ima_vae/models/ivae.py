@@ -8,15 +8,14 @@ from ima_vae.models.utils import weights_init
 
 
 class iVAE(nn.Module):
-    def __init__(self, latent_dim, data_dim, n_segments, n_classes, n_layers, hidden_dim, activation, device,
-                 prior=None, likelihood=None, posterior=None, slope=.2, diag_posterior: bool = True,
-                 dataset: DatasetType = "synth", fix_prior=True, beta=1.):
+    def __init__(self, latent_dim, data_dim, n_segments, n_classes, n_layers, activation, device, prior=None,
+                 likelihood=None, posterior=None, slope=.2, diag_posterior: bool = True, dataset: DatasetType = "synth",
+                 fix_prior=False, beta=1.):
         super().__init__()
 
         self.data_dim = data_dim
         self.latent_dim = latent_dim
         self.n_segments = n_segments
-        self.hidden_dim = hidden_dim
         self.n_layers = n_layers
         self.activation = activation
         self.slope = slope
