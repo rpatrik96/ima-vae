@@ -45,10 +45,14 @@ class Normal(Dist):
         self.name = 'gauss'
         self.diag = True
 
-    def sample(self, mu, v):
+    def sample(self, mu, v, diag=True):
         eps = self._dist.sample(mu.size()).squeeze()
         std = v.sqrt()
-        scaled = eps.mul(std)
+        if self.diag:
+            scaled = eps.mul(std)
+        else:
+            # v is cholesky and not variance
+            scaled = torch.matmul(v, eps.unsqueeze(2)).view(eps.shape)
         return scaled.add(mu)
 
     def log_pdf(self, x, mu, v):
