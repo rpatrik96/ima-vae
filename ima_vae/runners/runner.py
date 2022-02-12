@@ -27,7 +27,7 @@ class IMAModule(pl.LightningModule):
     def __init__(self, device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
                  activation: ActivationType = 'none', latent_dim: int = 2, n_segments: int = 1,
                  n_layers: int = 1, lr: float = 1e-4, n_classes: int = 1, dataset: DatasetType = 'synth',
-                 log_latents: bool = False, log_reconstruction: bool = False, **kwargs):
+                 log_latents: bool = False, log_reconstruction: bool = False, prior: str = 'uniform', **kwargs):
         """
 
         :param device: device to run on
@@ -39,6 +39,7 @@ class IMAModule(pl.LightningModule):
         :param n_classes: number of classes
         :param log_latents: flag to log latents
         :param log_reconstruction: flag to log reconstructions
+        :param prior: prior distribution name as string
         :param kwargs:
         """
         super().__init__()
@@ -47,7 +48,7 @@ class IMAModule(pl.LightningModule):
 
         self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
                                 n_layers=n_layers, hidden_dim=latent_dim * 10, activation=activation, device=device,
-                                dataset=self.hparams.dataset)
+                                dataset=self.hparams.dataset, prior=prior)
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
             self.logger.watch(self.model, log="all", log_freq=250)
@@ -58,8 +59,7 @@ class IMAModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, z_est, rec_loss, kl_loss, latent_stat, _ = self.model.elbo(obs, labels)
-        neg_elbo = elbo.mul(-1)
+        neg_elbo, z_est, rec_loss, kl_loss, latent_stat, _ = self.model.neg_elbo(obs, labels)
 
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, "Metrics/train")
 
@@ -100,10 +100,9 @@ class IMAModule(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        elbo, latent, rec_loss, kl_loss, latent_stat, reconstruction = self.model.elbo(obs, labels,
-                                                                                       reconstruction=True)
+        neg_elbo, latent, rec_loss, kl_loss, latent_stat, reconstruction = self.model.neg_elbo(obs, labels,
+                                                                                           reconstruction=True)
 
-        neg_elbo = elbo.mul(-1)
 
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
@@ -148,7 +147,7 @@ class IMAModule(pl.LightningModule):
                                                     estimated_factors.permute(1, 0).numpy(), method='Pearson')
         mcc = np.mean(np.abs(np.diag(mat)))
         if log is True:
-            self.log(f"{panel_name}/mcc", mcc)
+            self.log(f"{panel_name}/mcc", mcc, prog_bar=True)
 
         return mcc
 
