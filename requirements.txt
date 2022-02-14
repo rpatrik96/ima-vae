@@ -1,12 +1,15 @@
 PyYAML~=6.0
 matplotlib~=3.4.3
 numpy~=1.21.2
-setuptools~=57.0.0
+setuptools
 torch~=1.10.0
 sklearn~=0.0
 scikit-learn~=1.0.1
-wandb~=0.12.7
+wandb~=0.12.10
 jax~=0.2.21
 distrax~=0.1.0
 scipy~=1.7.3
 pytest~=6.2.5
+dm-env~=1.5
+pytorch-lightning
+jsonargparse

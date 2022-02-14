@@ -1,9 +1,9 @@
-import jax.numpy as jnp
 import numpy as np
 from jax import jacfwd
 from scipy.stats import ortho_group
 
-from ima_vae.data.data_generators import build_moebius_transform
+from ima_vae.data.utils import build_moebius_transform
+from ima_vae.metrics.cima import cima_kl_diagonality
 
 
 def test_moebius_orthogonality(args):
@@ -17,8 +17,6 @@ def test_moebius_orthogonality(args):
     # calculate jacobian
     jacobian = jacfwd(mixing_moebius)(a / 2)
 
-    q, _ = jnp.linalg.qr(jacobian)
-
     # as the jacobian should be column-orthogonal,
-    # the Q matrix of the QR-decomposition should have a |det| = 1
-    assert abs(abs(jnp.linalg.det(q)) - 1) < 1e-5
+    # meaning that the IMA contrast should be 0
+    assert cima_kl_diagonality(jacobian) < 1e-5

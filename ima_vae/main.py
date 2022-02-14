@@ -8,7 +8,6 @@ from ima_vae.runners.runner import IMAModule
 if __name__ == '__main__':
     parser = parse_args()
 
-
     # add model specific args
     parser = IMAModule.add_model_specific_args(parser)
     # add data specific args
@@ -22,8 +21,11 @@ if __name__ == '__main__':
 
     seed_everything(args.seed)
 
-    if args.use_wandb:
+    if args.wandb:
         args.logger = WandbLogger(entity="ima-vae", project=args.project, notes=args.notes, tags=args.tags)
+
+    if args.dataset == "image":
+        args.latent_dim = 4
 
     dict_args = vars(args)
 
@@ -33,7 +35,7 @@ if __name__ == '__main__':
     # init the model with all the key-value pairs
     model = IMAModule(**dict_args)
 
-    if args.use_wandb is True:
+    if args.wandb is True:
         args.logger.watch(model, log="all", log_freq=250)
 
     # datamodule
