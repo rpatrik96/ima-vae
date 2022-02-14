@@ -69,8 +69,8 @@ trainer:
 model:
   activation: lrelu
   n_segments: 1
-  n_layers: 3
-  lr: 0.0001
+  n_layers: 2
+  lr: 0.001
   n_classes: 1
   dataset: synth
   log_latents: false
@@ -81,7 +81,7 @@ data:
   orthog: false
   mobius: true
   linear: false
-  latent_dim: 5
+  latent_dim: 2
   n_segments: 1
   mixing_layers: 1
   n_obs: 10000
