@@ -1,6 +1,3 @@
 [submodule "ima"]
 	path = ima
 	url = https://github.com/lgresele/independent-mechanism-analysis
-[submodule "slow_disentanglement"]
-	path = slow_disentanglement
-	url = https://github.com/bethgelab/slow_disentanglement.git
