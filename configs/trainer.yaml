@@ -15,11 +15,7 @@ trainer:
   process_position: 0
   num_nodes: 1
   num_processes: 1
-  devices: null
-  gpus: null
   auto_select_gpus: false
-  tpu_cores: null
-  ipus: null
   log_gpu_memory: null
   progress_bar_refresh_rate: null
   enable_progress_bar: true
@@ -28,7 +24,7 @@ trainer:
   check_val_every_n_epoch: 1
   fast_dev_run: false
   accumulate_grad_batches: null
-  max_epochs: null
+  max_epochs: 200
   min_epochs: null
   max_steps: -1
   min_steps: null
@@ -65,4 +61,4 @@ trainer:
   move_metrics_to_cpu: false
   multiple_trainloader_mode: max_size_cycle
   stochastic_weight_avg: false
-  terminate_on_nan: null
+  terminate_on_nan: true
