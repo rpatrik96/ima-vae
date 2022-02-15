@@ -1,0 +1,6 @@
+model:
+  n_layers: 3
+  lr: 0.005
+  prior: uniform
+data:
+  latent_dim: 2

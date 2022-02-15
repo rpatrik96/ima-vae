@@ -18,7 +18,6 @@ from ima_vae.metrics.cima import cima_kl_diagonality
 from ima_vae.metrics.mig import compute_mig_with_discrete_factors
 from ima_vae.models.ivae import iVAE
 from ima_vae.models.utils import ActivationType
-# from disentanglement_lib.evaluation.metrics import mig, unsupervised_metrics, beta_vae, dci, factor_vae, irs, modularity_explicitness, unified_scores
 from ima_vae.utils import calc_jacobian
 
 
@@ -68,7 +67,7 @@ class IMAModule(pl.LightningModule):
 
         return neg_elbo
 
-    def _log_metrics(self, kl_loss, neg_elbo, rec_loss, latent_stat, panel_name):
+    def     _log_metrics(self, kl_loss, neg_elbo, rec_loss, latent_stat, panel_name):
         self.log(f"{panel_name}/neg_elbo", neg_elbo)
         self.log(f"{panel_name}/rec_loss", rec_loss)
         self.log(f"{panel_name}/kl_loss", kl_loss)
@@ -110,7 +109,7 @@ class IMAModule(pl.LightningModule):
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
         self._log_mcc(latent, sources, panel_name)
-        # self._log_cima(latent, panel_name)
+        self._log_cima(latent, panel_name)
         # self._log_amari_dist(obs, panel_name)
         # self._log_true_data_likelihood(obs, panel_name)
         # self._log_latents(latent, panel_name)
