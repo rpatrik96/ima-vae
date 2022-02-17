@@ -2,6 +2,11 @@
  python3 ima_vae/cli.py fit --help
 ```
 
+### Hyperparameter optimization
+```bash
+wandb sweep sweeps/priors.yaml --entity ima-vae --project experiment # returns sweep ID
+wandb agent --entity ima-vae --project experiment ima-vae/experiment/<ID-comes-here>
+```
 
 ### Deep learning project seed
 Use this seed to start new deep learning / ML projects.
