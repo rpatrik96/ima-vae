@@ -14,8 +14,9 @@ from ima_vae.data.utils import load_sprites, DatasetType
 class IMADataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str = dirname(abspath(__file__)), batch_size: int = 64, orthog: bool = False,
                  mobius: bool = True, linear: bool = False, latent_dim: int = 2, n_segments: int = 1,
-                 mixing_layers: int = 1, n_obs: int = int(60e3), seed: int = 1, n_classes: int = 1, train_ratio: float = .7,
-                 val_ratio: float = 0.2, dataset: DatasetType = "synth", **kwargs):
+                 mixing_layers: int = 1, n_obs: int = int(60e3), seed: int = 1, n_classes: int = 1,
+                 train_ratio: float = .7, val_ratio: float = 0.2, dataset: DatasetType = "synth", synth_source="uniform",
+                 **kwargs):
         """
 
         :param data_dir: data directory
@@ -32,6 +33,7 @@ class IMADataModule(pl.LightningDataModule):
         :param train_ratio: train ratio
         :param val_ratio: validation ratio
         :param dataset: dataset specifier, can be any of ["synth", "image"]
+        :param synth_source: source distribution for synthetic data, can be ["uniform", "gaussian", "laplace", "beta"]
         :param kwargs:
         """
         super().__init__()
@@ -57,7 +59,7 @@ class IMADataModule(pl.LightningDataModule):
                 num_segment_obs=n_obs_per_seg,
                 orthog=self.hparams.orthog,
                 mobius=self.hparams.mobius,
-                source="uniform", #todo: add cli arg
+                source=self.hparams.synth_source,
                 seed=self.hparams.seed,
                 nonlin="none" if self.hparams.linear is True else 'lrelu')
         else:

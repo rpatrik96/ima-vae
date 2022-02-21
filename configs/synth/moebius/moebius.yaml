@@ -23,4 +23,5 @@ data:
   val_transforms: null
   test_transforms: null
   dims: null
+  synth_source: uniform
 ckpt_path: null
