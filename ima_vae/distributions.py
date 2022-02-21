@@ -20,7 +20,7 @@ class Beta(Dist):
         self.name = 'beta'
 
     def log_pdf(self, z, alpha, beta):
-        alpha, beta = torch.abs(alpha) + 2, torch.abs(beta) + 2
+        alpha, beta = torch.abs(alpha), torch.abs(beta)
         alpha, beta = torch.flatten(alpha), torch.flatten(beta)
         shape, zdim = z.shape[0], z.shape[1]
         concentration = torch.stack([alpha, beta], -1)
