@@ -8,4 +8,4 @@ def weights_init(m):
         nn.init.xavier_uniform_(m.weight.data)
 
 
-ActivationType = Literal['lrelu', 'sigmoid', 'none']
+ActivationType = Literal["lrelu", "sigmoid", "none"]

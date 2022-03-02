@@ -3,11 +3,20 @@ from typing import Literal
 from torch import nn
 from torch.nn import functional as F
 
-ActivationType = Literal['lrelu', 'sigmoid', 'none']
+ActivationType = Literal["lrelu", "sigmoid", "none"]
 
 
 class MLP(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim, n_layers, activation: ActivationType, device, slope=.2):
+    def __init__(
+        self,
+        input_dim,
+        output_dim,
+        hidden_dim,
+        n_layers,
+        activation: ActivationType,
+        device,
+        slope=0.2,
+    ):
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -18,14 +27,14 @@ class MLP(nn.Module):
 
         self._act_f = []
         for act in self.activation:
-            if act == 'lrelu':
+            if act == "lrelu":
                 self._act_f.append(lambda x: F.leaky_relu(x, negative_slope=slope))
-            elif act == 'sigmoid':
+            elif act == "sigmoid":
                 self._act_f.append(F.sigmoid)
-            elif act == 'none':
+            elif act == "none":
                 self._act_f.append(lambda x: x)
             else:
-                ValueError('Incorrect activation: {}'.format(act))
+                ValueError("Incorrect activation: {}".format(act))
 
         if self.n_layers == 1:
             _fc_list = [nn.Linear(self.input_dim, self.output_dim)]
@@ -33,7 +42,9 @@ class MLP(nn.Module):
             _fc_list = [nn.Linear(self.input_dim, self.hidden_dim[0])]
             for i in range(1, self.n_layers - 1):
                 _fc_list.append(nn.Linear(self.hidden_dim[i - 1], self.hidden_dim[i]))
-            _fc_list.append(nn.Linear(self.hidden_dim[self.n_layers - 2], self.output_dim))
+            _fc_list.append(
+                nn.Linear(self.hidden_dim[self.n_layers - 2], self.output_dim)
+            )
         self.fc = nn.ModuleList(_fc_list)
         self.to(self.device)
 
@@ -94,10 +105,26 @@ def get_sprites_models(z_dim, post_dim, n_channels=3):
     return encoder, decoder
 
 
-def get_synth_models(data_dim, latent_dim, post_dim, n_layers, activation, device, slope):
-    encoder = MLP(data_dim, post_dim, latent_dim * 10, n_layers, activation=activation,
-                            slope=slope, device=device)
-    decoder = MLP(latent_dim, data_dim, latent_dim * 10, n_layers, activation=activation,
-                            slope=slope, device=device)
+def get_synth_models(
+    data_dim, latent_dim, post_dim, n_layers, activation, device, slope
+):
+    encoder = MLP(
+        data_dim,
+        post_dim,
+        latent_dim * 10,
+        n_layers,
+        activation=activation,
+        slope=slope,
+        device=device,
+    )
+    decoder = MLP(
+        latent_dim,
+        data_dim,
+        latent_dim * 10,
+        n_layers,
+        activation=activation,
+        slope=slope,
+        device=device,
+    )
 
     return encoder, decoder

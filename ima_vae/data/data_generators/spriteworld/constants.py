@@ -25,36 +25,35 @@ from spriteworld import shapes
 
 # A selection of simple shapes
 SHAPES = {
-    'triangle': shapes.polygon(num_sides=3, theta_0=np.pi/2),
-    'square': shapes.polygon(num_sides=4, theta_0=np.pi/4),
-    'pentagon': shapes.polygon(num_sides=5, theta_0=np.pi/2),
-    'hexagon': shapes.polygon(num_sides=6),
-    'octagon': shapes.polygon(num_sides=8),
-    'circle': shapes.polygon(num_sides=30),
-    'star_4': shapes.star(num_sides=4, theta_0=np.pi/4),
-    'star_5': shapes.star(num_sides=5, theta_0=np.pi + np.pi/10),
-    'star_6': shapes.star(num_sides=6),
-    'spoke_3': shapes.spokes(num_sides=3, theta_0=np.pi/2),
-    'spoke_4': shapes.spokes(num_sides=4, theta_0=np.pi/4),
-    'spoke_5': shapes.spokes(num_sides=5, theta_0=np.pi + np.pi/10),
-    'spoke_6': shapes.spokes(num_sides=6),
+    "triangle": shapes.polygon(num_sides=3, theta_0=np.pi / 2),
+    "square": shapes.polygon(num_sides=4, theta_0=np.pi / 4),
+    "pentagon": shapes.polygon(num_sides=5, theta_0=np.pi / 2),
+    "hexagon": shapes.polygon(num_sides=6),
+    "octagon": shapes.polygon(num_sides=8),
+    "circle": shapes.polygon(num_sides=30),
+    "star_4": shapes.star(num_sides=4, theta_0=np.pi / 4),
+    "star_5": shapes.star(num_sides=5, theta_0=np.pi + np.pi / 10),
+    "star_6": shapes.star(num_sides=6),
+    "spoke_3": shapes.spokes(num_sides=3, theta_0=np.pi / 2),
+    "spoke_4": shapes.spokes(num_sides=4, theta_0=np.pi / 4),
+    "spoke_5": shapes.spokes(num_sides=5, theta_0=np.pi + np.pi / 10),
+    "spoke_6": shapes.spokes(num_sides=6),
 }
 
 
 class ShapeType(enum.IntEnum):
-  """Enumerate SHAPES, useful for a state description of the environment."""
-  triangle = 1
-  square = 2
-  pentagon = 3
-  hexagon = 4
-  octagon = 5
-  circle = 6
-  star_4 = 7
-  star_5 = 8
-  star_6 = 9
-  spoke_4 = 10
-  spoke_5 = 11
-  spoke_6 = 12
-  spoke_3 = 13
+    """Enumerate SHAPES, useful for a state description of the environment."""
 
-  
+    triangle = 1
+    square = 2
+    pentagon = 3
+    hexagon = 4
+    octagon = 5
+    circle = 6
+    star_4 = 7
+    star_5 = 8
+    star_6 = 9
+    spoke_4 = 10
+    spoke_5 = 11
+    spoke_6 = 12
+    spoke_3 = 13

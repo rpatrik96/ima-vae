@@ -8,14 +8,28 @@ from ima_vae.distributions import Normal, Uniform, Beta
 from ima_vae.models import nets
 from ima_vae.models.utils import weights_init
 
-PriorType = Literal['gaussian', 'beta', 'uniform']
+PriorType = Literal["gaussian", "beta", "uniform"]
 
 
 class iVAE(nn.Module):
-    def __init__(self, latent_dim, data_dim, n_segments, n_classes, n_layers, activation, device,
-                 prior: PriorType = 'uniform',
-                 likelihood=None, posterior=None, slope=.2, diag_posterior: bool = True, dataset: DatasetType = "synth",
-                 fix_prior=False, beta=1.):
+    def __init__(
+        self,
+        latent_dim,
+        data_dim,
+        n_segments,
+        n_classes,
+        n_layers,
+        activation,
+        device,
+        prior: PriorType = "uniform",
+        likelihood=None,
+        posterior=None,
+        slope=0.2,
+        diag_posterior: bool = True,
+        dataset: DatasetType = "synth",
+        fix_prior=False,
+        beta=1.0,
+    ):
         super().__init__()
 
         self.data_dim = data_dim
@@ -37,33 +51,49 @@ class iVAE(nn.Module):
 
     def _setup_nets(self, dataset, device, n_layers, slope):
         # decoder params
-        self.decoder_var = .000001 * torch.ones(1).to(device)
+        self.decoder_var = 0.000001 * torch.ones(1).to(device)
 
-        if dataset == 'synth':
-            self.encoder, self.decoder = nets.get_synth_models(self.data_dim, self.latent_dim, self.post_dim,
-                                                               n_layers, self.activation, device, slope)
-        elif dataset == 'image':
-            self.encoder, self.decoder = nets.get_sprites_models(self.latent_dim, self.post_dim, n_channels=3)
+        if dataset == "synth":
+            self.encoder, self.decoder = nets.get_synth_models(
+                self.data_dim,
+                self.latent_dim,
+                self.post_dim,
+                n_layers,
+                self.activation,
+                device,
+                slope,
+            )
+        elif dataset == "image":
+            self.encoder, self.decoder = nets.get_sprites_models(
+                self.latent_dim, self.post_dim, n_channels=3
+            )
 
-    def _setup_distributions(self, likelihood, posterior, prior: PriorType, device, diag_posterior):
+    def _setup_distributions(
+        self, likelihood, posterior, prior: PriorType, device, diag_posterior
+    ):
         # prior_params
         self.prior_mean = torch.zeros(1).to(device)
         self.prior_var = torch.ones(1).to(device)
 
-        if prior == 'gaussian' or prior is None:
+        if prior == "gaussian" or prior is None:
             self.prior = Normal(device=device, diag=True)
-        elif prior == 'beta':
+        elif prior == "beta":
             self.prior = Beta()
-        elif prior == 'uniform':
+        elif prior == "uniform":
             self.prior = Uniform()
         else:
             self.prior = prior
 
-        if self.prior.name != 'uniform':
-            self.conditioner = nets.MLP(self.n_classes, self.latent_dim * (2 - bool(self.fix_prior)),
-                                        self.latent_dim * 4, self.n_layers,
-                                        activation=self.activation, slope=self.slope,
-                                        device=device)
+        if self.prior.name != "uniform":
+            self.conditioner = nets.MLP(
+                self.n_classes,
+                self.latent_dim * (2 - bool(self.fix_prior)),
+                self.latent_dim * 4,
+                self.n_layers,
+                activation=self.activation,
+                slope=self.slope,
+                device=device,
+            )
 
         # likelihood
         if likelihood is None:
@@ -91,8 +121,8 @@ class iVAE(nn.Module):
         :return:
         """
         encoding = self.encoder(x)
-        mu = encoding[:, :self.latent_dim]
-        log_var = cholesky_factors = encoding[:, self.latent_dim:]
+        mu = encoding[:, : self.latent_dim]
+        log_var = cholesky_factors = encoding[:, self.latent_dim :]
 
         return mu, log_var, cholesky_factors
 
@@ -103,13 +133,17 @@ class iVAE(nn.Module):
             latents = self.posterior.sample(enc_mean, enc_logvar.exp())
             log_qz_xu = self.posterior.log_pdf(latents, enc_mean, enc_logvar.exp())
         else:
-            self.cholesky = torch.zeros((x.shape[0], self.latent_dim, self.latent_dim)).to(x.device)
+            self.cholesky = torch.zeros(
+                (x.shape[0], self.latent_dim, self.latent_dim)
+            ).to(x.device)
             self._populate_cholesky(enc_cholesky)
             latents = self.posterior.sample(enc_mean, self.cholesky)
             log_qz_xu = self.posterior.log_pdf_full(latents, enc_mean, self.cholesky)
 
-        if self.prior.name == 'beta' or self.prior.name == 'uniform':
-            determ = torch.log(1. / (torch.sigmoid(latents) * (1. - torch.sigmoid(latents)))).sum(1)
+        if self.prior.name == "beta" or self.prior.name == "uniform":
+            determ = torch.log(
+                1.0 / (torch.sigmoid(latents) * (1.0 - torch.sigmoid(latents)))
+            ).sum(1)
             log_qz_xu += determ
             latents = torch.sigmoid(latents)
 
@@ -133,7 +167,13 @@ class iVAE(nn.Module):
         :param u: segment labels
         :return:
         """
-        encoding_mean, encoding_logvar, latents, reconstructions, log_qz_xu = self.forward(x)
+        (
+            encoding_mean,
+            encoding_logvar,
+            latents,
+            reconstructions,
+            log_qz_xu,
+        ) = self.forward(x)
 
         log_px_z = self._obs_log_likelihood(reconstructions, x)
         # log_px_z = ((x_recon-x.to(device))**2).flatten(1).sum(1).mul(-1)
@@ -148,44 +188,64 @@ class iVAE(nn.Module):
 
         neg_elbo = -(rec_loss + self.beta * kl_loss)
 
-        return neg_elbo, latents, rec_loss, kl_loss, None if log is False else latent_stat, None if reconstruction is False else \
-            reconstructions
+        return (
+            neg_elbo,
+            latents,
+            rec_loss,
+            kl_loss,
+            None if log is False else latent_stat,
+            None if reconstruction is False else reconstructions,
+        )
 
     def _prior_log_likelihood(self, latents, u):
         # all prior parameters fixed if uniform
-        if self.prior.name == 'uniform':
+        if self.prior.name == "uniform":
             log_pz_u = self.prior.log_pdf(latents, self.prior_mean, self.prior_var)
         else:
             prior_params = self.conditioner(u)
 
             if self.fix_prior is False:
-                prior_mean = prior_params[:, :self.latent_dim]
-                prior_logvar = prior_params[:, self.latent_dim:]
+                prior_mean = prior_params[:, : self.latent_dim]
+                prior_logvar = prior_params[:, self.latent_dim :]
 
-            if self.prior.name == 'gauss':
+            if self.prior.name == "gauss":
                 if self.fix_prior is True:
-                    log_pz_u = self.prior.log_pdf(latents, self.prior_mean, prior_params.exp())
+                    log_pz_u = self.prior.log_pdf(
+                        latents, self.prior_mean, prior_params.exp()
+                    )
                 else:
-                    log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar.exp())
+                    log_pz_u = self.prior.log_pdf(
+                        latents, prior_mean, prior_logvar.exp()
+                    )
 
-            elif self.prior.name == 'beta':
+            elif self.prior.name == "beta":
                 if self.fix_prior is True:
-                    log_pz_u = self.prior.log_pdf(latents, torch.ones((latents.shape[0], self.latent_dim)) * 3,
-                                                  torch.ones((latents.shape[0], self.latent_dim)) * 11)
+                    log_pz_u = self.prior.log_pdf(
+                        latents,
+                        torch.ones((latents.shape[0], self.latent_dim)) * 3,
+                        torch.ones((latents.shape[0], self.latent_dim)) * 11,
+                    )
                 else:
                     log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
         return log_pz_u
 
     def _obs_log_likelihood(self, reconstructions, x):
-        log_px_z = self.likelihood.log_pdf(reconstructions.flatten(1), x.flatten(1), self.decoder_var)
+        log_px_z = self.likelihood.log_pdf(
+            reconstructions.flatten(1), x.flatten(1), self.decoder_var
+        )
         return log_px_z
 
     def _latent_statistics(self, encoding, enc_variance) -> dict:
 
         latent_mean_variance = enc_variance.mean(0)
         latent_mean = encoding.mean(0)
-        latent_stat = {**{f"latent_mean_variance_{i}": latent_mean_variance[i] for i in range(self.data_dim)},
-                       **{f"latent_mean_{i}": latent_mean[i] for i in range(self.data_dim)}}
+        latent_stat = {
+            **{
+                f"latent_mean_variance_{i}": latent_mean_variance[i]
+                for i in range(self.data_dim)
+            },
+            **{f"latent_mean_{i}": latent_mean[i] for i in range(self.data_dim)},
+        }
 
         return latent_stat
 

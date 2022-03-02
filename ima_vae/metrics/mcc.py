@@ -2,9 +2,9 @@ import numpy as np
 import scipy
 import torch
 
-'''
+"""
 Code for MCC taken from the TCL Repo
-'''
+"""
 
 import sys
 import copy
@@ -13,22 +13,23 @@ import copy
 # Exports
 # ---------------------------------------------------------------------------
 
-__all__     = ['Munkres', 'make_cost_matrix']
+__all__ = ["Munkres", "make_cost_matrix"]
 
 # ---------------------------------------------------------------------------
 # Globals
 # ---------------------------------------------------------------------------
 
 # Info about the module
-__version__   = "1.0.8"
-__author__    = "Brian Clapper, bmc@clapper.org"
-__url__       = "http://software.clapper.org/munkres/"
+__version__ = "1.0.8"
+__author__ = "Brian Clapper, bmc@clapper.org"
+__url__ = "http://software.clapper.org/munkres/"
 __copyright__ = "(c) 2008 Brian M. Clapper"
-__license__   = "Apache Software License"
+__license__ = "Apache Software License"
 
 # ---------------------------------------------------------------------------
 # Classes
 # ---------------------------------------------------------------------------
+
 
 class Munkres:
     """
@@ -53,6 +54,7 @@ class Munkres:
         Please use the module function ``make_cost_matrix()``.
         """
         from . import munkres
+
         return munkres.make_cost_matrix(profit_matrix, inversion_function)
 
     make_cost_matrix = staticmethod(make_cost_matrix)
@@ -121,12 +123,14 @@ class Munkres:
         done = False
         step = 1
 
-        steps = { 1 : self.__step1,
-                  2 : self.__step2,
-                  3 : self.__step3,
-                  4 : self.__step4,
-                  5 : self.__step5,
-                  6 : self.__step6 }
+        steps = {
+            1: self.__step1,
+            2: self.__step2,
+            3: self.__step3,
+            4: self.__step4,
+            5: self.__step5,
+            6: self.__step6,
+        }
 
         while not done:
             try:
@@ -180,9 +184,11 @@ class Munkres:
         n = self.n
         for i in range(n):
             for j in range(n):
-                if (self.C[i][j] == 0) and \
-                        (not self.col_covered[j]) and \
-                        (not self.row_covered[i]):
+                if (
+                    (self.C[i][j] == 0)
+                    and (not self.col_covered[j])
+                    and (not self.row_covered[i])
+                ):
                     self.marked[i][j] = 1
                     self.col_covered[j] = True
                     self.row_covered[i] = True
@@ -205,7 +211,7 @@ class Munkres:
                     count += 1
 
         if count >= n:
-            step = 7 # done
+            step = 7  # done
         else:
             step = 4
 
@@ -265,14 +271,14 @@ class Munkres:
             if row >= 0:
                 count += 1
                 path[count][0] = row
-                path[count][1] = path[count-1][1]
+                path[count][1] = path[count - 1][1]
             else:
                 done = True
 
             if not done:
                 col = self.__find_prime_in_row(path[count][0])
                 count += 1
-                path[count][0] = path[count-1][0]
+                path[count][0] = path[count - 1][0]
                 path[count][1] = col
 
         self.__convert_path(path, count)
@@ -317,9 +323,11 @@ class Munkres:
         while not done:
             j = 0
             while True:
-                if (self.C[i][j] == 0) and \
-                        (not self.row_covered[i]) and \
-                        (not self.col_covered[j]):
+                if (
+                    (self.C[i][j] == 0)
+                    and (not self.row_covered[i])
+                    and (not self.col_covered[j])
+                ):
                     row = i
                     col = j
                     done = True
@@ -372,7 +380,7 @@ class Munkres:
         return col
 
     def __convert_path(self, path, count):
-        for i in range(count+1):
+        for i in range(count + 1):
             if self.marked[path[i][0]][path[i][1]] == 1:
                 self.marked[path[i][0]][path[i][1]] = 0
             else:
@@ -391,15 +399,18 @@ class Munkres:
                 if self.marked[i][j] == 2:
                     self.marked[i][j] = 0
 
+
 # ---------------------------------------------------------------------------
 # Functions
 # ---------------------------------------------------------------------------
+
 
 def make_cost_matrix(profit_matrix, inversion_function):
     cost_matrix = []
     for row in profit_matrix:
         cost_matrix.append([inversion_function(value) for value in row])
     return cost_matrix
+
 
 def print_matrix(matrix, msg=None):
     """
@@ -422,47 +433,36 @@ def print_matrix(matrix, msg=None):
             width = max(width, int(math.log10(val)) + 1)
 
     # Make the format string
-    format = '%%%dd' % width
+    format = "%%%dd" % width
 
     # Print the matrix
     for row in matrix:
-        sep = '['
+        sep = "["
         for val in row:
             sys.stdout.write(sep + format % val)
-            sep = ', '
-        sys.stdout.write(']\n')
+            sep = ", "
+        sys.stdout.write("]\n")
+
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     matrices = [
         # Square
-        ([[400, 150, 400],
-          [400, 450, 600],
-          [300, 225, 300]],
-         850),  # expected cost
-
+        ([[400, 150, 400], [400, 450, 600], [300, 225, 300]], 850),  # expected cost
         # Rectangular variant
-        ([[400, 150, 400, 1],
-          [400, 450, 600, 2],
-          [300, 225, 300, 3]],
-         452),  # expected cost
-
-
+        (
+            [[400, 150, 400, 1], [400, 450, 600, 2], [300, 225, 300, 3]],
+            452,
+        ),  # expected cost
         # Square
-        ([[10, 10,  8],
-          [9,  8,  1],
-          [9,  7,  4]],
-         18),
-
+        ([[10, 10, 8], [9, 8, 1], [9, 7, 4]], 18),
         # Rectangular variant
-        ([[10, 10,  8, 11],
-          [9,  8,  1, 1],
-          [9,  7,  4, 10]],
-         15)]
+        ([[10, 10, 8, 11], [9, 8, 1, 1], [9, 7, 4, 10]], 15),
+    ]
 
     m = Munkres()
     for cost_matrix, expected_total in matrices:
@@ -474,27 +474,29 @@ if __name__ == '__main__':
         assert expected_total == total_cost
 
 import scipy as sp
-def correlation(x, y, method='Pearson'):
+
+
+def correlation(x, y, method="Pearson"):
     """Evaluate correlation
-     Args:
-         x: data to be sorted
-         y: target data
-     Returns:
-         corr_sort: correlation matrix between x and y (after sorting)
-         sort_idx: sorting index
-         x_sort: x after sorting
-         method: correlation method ('Pearson' or 'Spearman')
-     """
-     
+    Args:
+        x: data to be sorted
+        y: target data
+    Returns:
+        corr_sort: correlation matrix between x and y (after sorting)
+        sort_idx: sorting index
+        x_sort: x after sorting
+        method: correlation method ('Pearson' or 'Spearman')
+    """
+
     x = x.copy()
     y = y.copy()
     dim = x.shape[0]
 
     # Calculate correlation -----------------------------------
-    if method=='Pearson':
+    if method == "Pearson":
         corr = np.corrcoef(y, x)
-        corr = corr[0:dim,dim:]
-    elif method=='Spearman':
+        corr = corr[0:dim, dim:]
+    elif method == "Spearman":
         corr, pvalue = sp.stats.spearmanr(y.T, x.T)
         corr = corr[0:dim, dim:]
 
@@ -506,13 +508,13 @@ def correlation(x, y, method='Pearson'):
     x_sort = np.zeros(x.shape)
     for i in range(dim):
         sort_idx[i] = indexes[i][1]
-        x_sort[i,:] = x[indexes[i][1],:]
+        x_sort[i, :] = x[indexes[i][1], :]
 
     # Re-calculate correlation --------------------------------
-    if method=='Pearson':
+    if method == "Pearson":
         corr_sort = np.corrcoef(y, x_sort)
-        corr_sort = corr_sort[0:dim,dim:]
-    elif method=='Spearman':
+        corr_sort = corr_sort[0:dim, dim:]
+    elif method == "Spearman":
         corr_sort, pvalue = sp.stats.spearmanr(y.T, x_sort.T)
         corr_sort = corr_sort[0:dim, dim:]
 

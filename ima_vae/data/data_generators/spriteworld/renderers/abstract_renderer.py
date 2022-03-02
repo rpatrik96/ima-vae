@@ -25,23 +25,23 @@ import six
 
 @six.add_metaclass(abc.ABCMeta)
 class AbstractRenderer(object):
-  """Abstract base class for renderers."""
+    """Abstract base class for renderers."""
 
-  @abc.abstractmethod
-  def render(self, sprites=(), global_state=None):
-    """Renderer the sprites and global_state.
+    @abc.abstractmethod
+    def render(self, sprites=(), global_state=None):
+        """Renderer the sprites and global_state.
 
-    Args:
-      sprites: Iterable of sprites to be rendered.
-      global_state: May contain extra information for rendering (e.g.
-        background, symbolic/linguistic data, etc.).
-    """
+        Args:
+          sprites: Iterable of sprites to be rendered.
+          global_state: May contain extra information for rendering (e.g.
+            background, symbolic/linguistic data, etc.).
+        """
 
-  @abc.abstractmethod
-  def observation_spec(self):
-    """Get observation spec for the output.
+    @abc.abstractmethod
+    def observation_spec(self):
+        """Get observation spec for the output.
 
-    Returns:
-      ArraySpec or nested structure of such. Must agree with the output of
-        self.update().
-    """
+        Returns:
+          ArraySpec or nested structure of such. Must agree with the output of
+            self.update().
+        """

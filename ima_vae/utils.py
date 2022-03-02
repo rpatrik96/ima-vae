@@ -21,13 +21,38 @@ def batch_jacobian(func, x, create_graph=False):
 
 
 def get_interp_name(args):
-    return "latent_interpolations_" + "shape_" + str(int(args.shape)) + "_angle_" + str(
-        int(args.angle)) + "_diag_" + str(args.diag) + "_seed_" + str(args.seed) + "_beta_" + str(args.beta)
+    return (
+        "latent_interpolations_"
+        + "shape_"
+        + str(int(args.shape))
+        + "_angle_"
+        + str(int(args.angle))
+        + "_diag_"
+        + str(args.diag)
+        + "_seed_"
+        + str(args.seed)
+        + "_beta_"
+        + str(args.beta)
+    )
 
 
 def get_save_name(args):
-    return "model_checkpoint_" + "dset_" + args.dset + "_shape_" + str(int(args.shape)) + "_angle_" + str(
-        int(args.angle)) + "_diag_" + str(args.diag) + "_seed_" + str(args.seed) + "_beta_" + str(args.beta) + '.pth'
+    return (
+        "model_checkpoint_"
+        + "dset_"
+        + args.dset
+        + "_shape_"
+        + str(int(args.shape))
+        + "_angle_"
+        + str(int(args.angle))
+        + "_diag_"
+        + str(args.diag)
+        + "_seed_"
+        + str(args.seed)
+        + "_beta_"
+        + str(args.beta)
+        + ".pth"
+    )
 
 
 def get_corr_mat(net, data_loader, corr_type, epoch=None):
@@ -41,15 +66,21 @@ def get_corr_mat(net, data_loader, corr_type, epoch=None):
             estimated_factors.append(z.cpu().numpy())
 
         true = torch.from_numpy(np.concatenate(true_factors)).permute(1, 0).numpy()
-        estimated = torch.from_numpy(np.concatenate(estimated_factors)).permute(1, 0).numpy()
+        estimated = (
+            torch.from_numpy(np.concatenate(estimated_factors)).permute(1, 0).numpy()
+        )
         if (epoch % 100) == 0:
             true_plot = torch.from_numpy(true).permute(1, 0).numpy()
             estimated_plot = torch.from_numpy(estimated).permute(1, 0).numpy()
             _, colors = cart2pol(true_plot[:, 0], true_plot[:, 1])
             estimated_plot[:, 0] = estimated_plot[:, 0] * -1
-            scatterplot_variables(estimated_plot, 'Sources (estimated)', colors=colors)
-            plt.title('Estimated (Epoch ' + str(epoch) + ")", fontsize=19)
-            plt.savefig("Estimated_sources_mobius_epoch_" + str(epoch), dpi=150, bbox_inches='tight')
+            scatterplot_variables(estimated_plot, "Sources (estimated)", colors=colors)
+            plt.title("Estimated (Epoch " + str(epoch) + ")", fontsize=19)
+            plt.savefig(
+                "Estimated_sources_mobius_epoch_" + str(epoch),
+                dpi=150,
+                bbox_inches="tight",
+            )
             plt.close()
 
         mat, _, _ = mcc.correlation(true, estimated, method=corr_type)
@@ -62,12 +93,12 @@ def get_latent_interp(net):
         x = net.interp_sample
         decoder = net.decoder
         params = net.encoder(x.unsqueeze(0)).squeeze()
-        mu = params[:net.latent_dim]
+        mu = params[: net.latent_dim]
         if net.posterior.diag:
-            std = params[net.latent_dim:].exp().sqrt()
+            std = params[net.latent_dim :].exp().sqrt()
         else:
             cholesky = torch.zeros((net.latent_dim, net.latent_dim)).to(x.device)
-            cholesky_factors = params[net.latent_dim:]
+            cholesky_factors = params[net.latent_dim :]
             it = 0
             for i in range(cholesky.shape[1]):
                 for j in range(i + 1):
@@ -92,17 +123,22 @@ def get_latent_interp(net):
         net.interp_dir = os.path.join(net.interp_dir, str(net.iter))
         os.makedirs(net.interp_dir, exist_ok=True)
         gifs = torch.cat(gifs)
-        gifs = gifs.view(1, net.latent_dim, len(r), x.shape[0], x.shape[1], x.shape[2]).transpose(1, 2)
+        gifs = gifs.view(
+            1, net.latent_dim, len(r), x.shape[0], x.shape[1], x.shape[2]
+        ).transpose(1, 2)
         for j in range(len(r)):
-            save_image(tensor=gifs[0][j].cpu(),
-                       fp=os.path.join(net.interp_dir, '{}.jpg'.format(j)),
-                       nrow=net.latent_dim, pad_value=1)
+            save_image(
+                tensor=gifs[0][j].cpu(),
+                fp=os.path.join(net.interp_dir, "{}.jpg".format(j)),
+                nrow=net.latent_dim,
+                pad_value=1,
+            )
         images = []
         for j in range(len(r)):
-            filename = os.path.join(net.interp_dir, '{}.jpg'.format(j))
+            filename = os.path.join(net.interp_dir, "{}.jpg".format(j))
             images.append(imageio.imread(filename))
 
-        out = os.path.join(net.interp_dir, '{}.gif'.format(j))
+        out = os.path.join(net.interp_dir, "{}.gif".format(j))
         imageio.mimsave(out, images)
 
 
@@ -125,10 +161,16 @@ def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
         output_vars = model(input_vars).flatten(1)
 
         for i in range(output_vars.shape[1]):
-            jacob.append(torch.autograd.grad(output_vars[:, i:i + 1], input_vars, create_graph=True,
-                                             grad_outputs=torch.ones(output_vars[:, i:i + 1].shape).to(
-                                                 output_vars.device))[
-                             0])
+            jacob.append(
+                torch.autograd.grad(
+                    output_vars[:, i : i + 1],
+                    input_vars,
+                    create_graph=True,
+                    grad_outputs=torch.ones(output_vars[:, i : i + 1].shape).to(
+                        output_vars.device
+                    ),
+                )[0]
+            )
 
         jacobian = torch.stack(jacob, 1)
 

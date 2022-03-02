@@ -23,38 +23,44 @@ def to_one_hot(x, m=None):
 
 
 def cart2pol(x, y):
-    '''
+    """
     From cartesian to polar coordinates
-    '''
-    rho = np.sqrt(x ** 2 + y ** 2)
+    """
+    rho = np.sqrt(x**2 + y**2)
     phi = np.arctan2(y, x)
     return (rho, phi)
 
 
-def scatterplot_variables(x, title, colors='None', cmap='hsv'):
-    if colors == 'None':
-        plt.scatter(x[:, 0], x[:, 1], color='r', s=30)
+def scatterplot_variables(x, title, colors="None", cmap="hsv"):
+    if colors == "None":
+        plt.scatter(x[:, 0], x[:, 1], color="r", s=30)
     else:
         plt.scatter(x[:, 0], x[:, 1], c=colors, s=30, alpha=0.75, cmap=cmap)
 
-    plt.axis('off')
-    plt.gca().set_aspect('equal', adjustable='box')
+    plt.axis("off")
+    plt.gca().set_aspect("equal", adjustable="box")
 
 
 def get_load_name(n_obs, n_classes):
-    return "isprites_nclasses_" + str(n_classes) + "_nobs_" + str(
-        int(n_obs)) + "_lower_2_upper_15" + '.npz'
+    return (
+        "isprites_nclasses_"
+        + str(n_classes)
+        + "_nobs_"
+        + str(int(n_obs))
+        + "_lower_2_upper_15"
+        + ".npz"
+    )
 
 
 def build_moebius_transform(alpha, A, a, b, epsilon=2):
-    '''
+    """
     Implements Möbius transformations for D>=2, based on:
     https://en.wikipedia.org/wiki/Liouville%27s_theorem_(conformal_mappings)
 
     alpha: a scalar
     A: an orthogonal matrix
     a, b: vectors in R^D (dimension of the data)
-    '''
+    """
     from jax import numpy as jnp
 
     def mixing_moebius_transform(x):
@@ -82,15 +88,15 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
 
 def load_sprites(n_obs, n_classes):
     data_dir = join(dirname(abspath(__file__)), "sprites_data")
-    path = join(data_dir, filename:=get_load_name(n_obs, n_classes))
+    path = join(data_dir, filename := get_load_name(n_obs, n_classes))
 
-    obs = np.load(path)['arr_0']
-    labels = np.load(path)['arr_1']
-    sources = np.load(path)['arr_2']
+    obs = np.load(path)["arr_0"]
+    labels = np.load(path)["arr_1"]
+    sources = np.load(path)["arr_2"]
 
     mixing, unmixing = None, None
 
-    discrete_list = [False]*4
+    discrete_list = [False] * 4
     if "angle" in filename:
         discrete_list.append(True)
     if "shape" in filename:

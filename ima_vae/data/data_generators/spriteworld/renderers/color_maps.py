@@ -24,5 +24,5 @@ import numpy as np
 
 
 def hsv_to_rgb(c):
-  """Convert HSV tuple to RGB tuple."""
-  return tuple((255 * np.array(colorsys.hsv_to_rgb(*c))).astype(np.uint8))
+    """Convert HSV tuple to RGB tuple."""
+    return tuple((255 * np.array(colorsys.hsv_to_rgb(*c))).astype(np.uint8))

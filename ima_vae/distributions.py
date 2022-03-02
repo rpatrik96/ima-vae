@@ -17,7 +17,7 @@ class Dist:
 class Beta(Dist):
     def __init__(self):
         super().__init__()
-        self.name = 'beta'
+        self.name = "beta"
 
     def log_pdf(self, z, alpha, beta):
         alpha, beta = torch.abs(alpha), torch.abs(beta)
@@ -26,23 +26,28 @@ class Beta(Dist):
         concentration = torch.stack([alpha, beta], -1)
         z = torch.flatten(z)
         heads_tails = torch.stack([z, 1.0 - z], -1)
-        log_p_z = (torch.log(heads_tails) * (concentration - 1.0)).sum(-1) + torch.lgamma(
-            concentration.sum(-1)) - torch.lgamma(concentration).sum(-1)
+        log_p_z = (
+            (torch.log(heads_tails) * (concentration - 1.0)).sum(-1)
+            + torch.lgamma(concentration.sum(-1))
+            - torch.lgamma(concentration).sum(-1)
+        )
         log_p_z = log_p_z.view(shape, zdim).sum(1)
         return log_p_z
 
 
 class Normal(Dist):
-    '''
+    """
     Code for Normal class adapted from: https://github.com/ilkhem/icebeem/blob/master/models/ivae/ivae_core.py
-    '''
+    """
 
-    def __init__(self, device='cpu', diag=True):
+    def __init__(self, device="cpu", diag=True):
         super().__init__()
         self.device = device
         self.c = 2 * np.pi * torch.ones(1).to(self.device)
-        self._dist = dist.normal.Normal(torch.zeros(1).to(self.device), torch.ones(1).to(self.device))
-        self.name = 'gauss'
+        self._dist = dist.normal.Normal(
+            torch.zeros(1).to(self.device), torch.ones(1).to(self.device)
+        )
+        self.name = "gauss"
         self.diag = True
 
     def sample(self, mu, v, diag=True):
@@ -67,26 +72,32 @@ class Normal(Dist):
         mu is batch of means of shape (batch_size, d_latent)
         """
         batch_size, d = mu.size()
-        cov = torch.einsum('bik,bjk->bij', v, v)  # compute batch cov from its "pseudo sqrt"
+        cov = torch.einsum(
+            "bik,bjk->bij", v, v
+        )  # compute batch cov from its "pseudo sqrt"
         assert cov.size() == (batch_size, d, d)
         inv_cov = torch.inverse(cov)
         c = d * torch.log(self.c)
         _, logabsdets = torch.slogdet(cov)
         xmu = x - mu
-        lpdf = -0.5 * (c + logabsdets + torch.einsum('bi,bij,bj->b', [xmu, inv_cov, xmu]))
+        lpdf = -0.5 * (
+            c + logabsdets + torch.einsum("bi,bij,bj->b", [xmu, inv_cov, xmu])
+        )
         return lpdf
 
 
 class Laplace(Dist):
-    '''
+    """
     Code from: https://github.com/ilkhem/icebeem/blob/master/models/ivae/ivae_core.py
-    '''
+    """
 
-    def __init__(self, device='cpu'):
+    def __init__(self, device="cpu"):
         super().__init__()
         self.device = device
-        self._dist = dist.laplace.Laplace(torch.zeros(1).to(self.device), torch.ones(1).to(self.device) / np.sqrt(2))
-        self.name = 'laplace'
+        self._dist = dist.laplace.Laplace(
+            torch.zeros(1).to(self.device), torch.ones(1).to(self.device) / np.sqrt(2)
+        )
+        self.name = "laplace"
 
     def sample(self, mu, b):
         eps = self._dist.sample(mu.size())
@@ -107,7 +118,7 @@ class Laplace(Dist):
 class Uniform(Dist):
     def __init__(self):
         super().__init__()
-        self.name = 'uniform'
+        self.name = "uniform"
 
     def log_pdf(self, x, low, high):
         lb = low.le(x).type_as(low)

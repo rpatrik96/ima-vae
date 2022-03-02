@@ -18,3 +18,4 @@ Pillow~=8.3.2
 imageio~=2.13.3
 pytorch-lightning~=1.5.9
 jsonargparse[signatures]~=4.1.4
+pre-commit

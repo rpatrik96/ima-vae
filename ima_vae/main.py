@@ -5,7 +5,7 @@ from ima_vae.args import parse_args
 from ima_vae.data.datamodules import IMADataModule
 from ima_vae.runners.runner import IMAModule
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = parse_args()
 
     # add model specific args
@@ -22,7 +22,9 @@ if __name__ == '__main__':
     seed_everything(args.seed)
 
     if args.wandb:
-        args.logger = WandbLogger(entity="ima-vae", project=args.project, notes=args.notes, tags=args.tags)
+        args.logger = WandbLogger(
+            entity="ima-vae", project=args.project, notes=args.notes, tags=args.tags
+        )
 
     if args.dataset == "image":
         args.latent_dim = 4

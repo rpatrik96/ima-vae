@@ -7,3 +7,4 @@ flake8
 check-manifest
 twine==1.13.0
 lightning-bolts~=0.4.0
+black
