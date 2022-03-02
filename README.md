@@ -58,6 +58,9 @@ git clone https://github.com/YourGithubName/deep-learning-project-template
 cd deep-learning-cpca_vae-template 
 pip install -e .   
 pip install -r requirements.txt
+
+# install pre-commit hooks
+pre-commit install
  ```   
  Next, navigate to any file and run it.   
  ```bash
