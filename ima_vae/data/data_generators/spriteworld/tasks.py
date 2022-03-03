@@ -213,16 +213,6 @@ class Clustering(AbstractTask):
 
         return clusters
 
-    def _compute_clustering_metric(self, sprites):
-        """Compute the different clustering metrics, higher should be better."""
-        # Get positions of sprites, and their cluster assignments
-        cluster_assignments = self._cluster_assignments(sprites)
-        positions = np.array([sprite.position for sprite in sprites])
-        # Ignore objects unassigned to any cluster
-        positions = positions[cluster_assignments >= 0]
-        cluster_assignments = cluster_assignments[cluster_assignments >= 0]
-        return 1.0 / metrics.davies_bouldin_score(positions, cluster_assignments)
-
     def reward(self, sprites):
         """Calculate reward from sprites.
 
