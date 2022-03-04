@@ -12,11 +12,29 @@ from ima_vae.data.utils import load_sprites, DatasetType
 
 
 class IMADataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = dirname(abspath(__file__)), batch_size: int = 64, orthog: bool = False,
-                 mobius: bool = True, linear: bool = False, latent_dim: int = 2, n_segments: int = 1,
-                 mixing_layers: int = 1, n_obs: int = int(60e3), seed: int = 1, n_classes: int = 1,
-                 train_ratio: float = 0.7, val_ratio: float = 0.2, dataset: DatasetType = "synth",
-                 synth_source="uniform", prior_alpha:float=1., prior_beta:float=1., prior_var:float=1., prior_mean:float=0., **kwargs):
+    def __init__(
+        self,
+        data_dir: str = dirname(abspath(__file__)),
+        batch_size: int = 64,
+        orthog: bool = False,
+        mobius: bool = True,
+        linear: bool = False,
+        latent_dim: int = 2,
+        n_segments: int = 1,
+        mixing_layers: int = 1,
+        n_obs: int = int(60e3),
+        seed: int = 1,
+        n_classes: int = 1,
+        train_ratio: float = 0.7,
+        val_ratio: float = 0.2,
+        dataset: DatasetType = "synth",
+        synth_source="uniform",
+        prior_alpha: float = 1.0,
+        prior_beta: float = 1.0,
+        prior_var: float = 1.0,
+        prior_mean: float = 0.0,
+        **kwargs,
+    ):
         """
 
         :param prior_alpha: beta prior alpha shape > 0

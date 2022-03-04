@@ -42,8 +42,8 @@ def get_prediction_score(mus: np.array, ys: np.array, discrete: bool) -> float:
             score = 1 - (np.sqrt(np.mean((y - y_pred) ** 2)) / np.std(y))
             return np.clip(score, 0, 1)
 
-    return get_score(ys_val, ys_val_predictions), get_score(
-        ys_test, ys_test_predictions
+    return get_score(ys_val.numpy(), ys_val_predictions), get_score(
+        ys_test.numpy(), ys_test_predictions
     )
 
 

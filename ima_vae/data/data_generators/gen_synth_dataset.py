@@ -66,7 +66,8 @@ def gen_data(
     alpha_shape=np.random.uniform(1, 10),
     beta_shape=np.random.uniform(1, 10),
     mean=np.random.uniform(0, 0),
-    var=np.random.uniform(0.01, 3)):
+    var=np.random.uniform(0.01, 3),
+):
     np.random.seed(2 * seed)
     if nonlin == "none":
         nlayers = 1
@@ -96,7 +97,9 @@ def gen_data(
         elif source == "beta":
             key = jax.random.PRNGKey(seed)
             key, subkey = jax.random.split(key)
-            sources[segID, :] = jax.random.beta(subkey, alpha_shape, beta_shape, (num_segment_obs, num_dim))
+            sources[segID, :] = jax.random.beta(
+                subkey, alpha_shape, beta_shape, (num_segment_obs, num_dim)
+            )
             sources -= 0.5
         labels[segID] = seg
 

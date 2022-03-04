@@ -8,10 +8,29 @@ from ima_vae.models.utils import weights_init, PriorType
 
 
 class iVAE(nn.Module):
-    def __init__(self, latent_dim: int, data_dim: int, n_segments: int, n_classes: int, n_layers: int, activation,
-                 device, prior: PriorType = "uniform", likelihood=None, posterior=None, slope: float = 0.2,
-                 diag_posterior: bool = True, dataset: DatasetType = "synth", fix_prior=True, beta: float = 1.0,
-                 prior_alpha: float = 1., prior_beta: float = 1., prior_mean:float=0., prior_var:float=1., decoder_var:float=0.000001):
+    def __init__(
+        self,
+        latent_dim: int,
+        data_dim: int,
+        n_segments: int,
+        n_classes: int,
+        n_layers: int,
+        activation,
+        device,
+        prior: PriorType = "uniform",
+        likelihood=None,
+        posterior=None,
+        slope: float = 0.2,
+        diag_posterior: bool = True,
+        dataset: DatasetType = "synth",
+        fix_prior=True,
+        beta: float = 1.0,
+        prior_alpha: float = 1.0,
+        prior_beta: float = 1.0,
+        prior_mean: float = 0.0,
+        prior_var: float = 1.0,
+        decoder_var: float = 0.000001,
+    ):
         super().__init__()
 
         self.data_dim = data_dim
@@ -24,8 +43,17 @@ class iVAE(nn.Module):
         self.fix_prior = fix_prior
         self.beta = beta
 
-        self._setup_distributions(likelihood, posterior, prior, device, diag_posterior, prior_alpha, prior_beta,
-                                  prior_mean, prior_var)
+        self._setup_distributions(
+            likelihood,
+            posterior,
+            prior,
+            device,
+            diag_posterior,
+            prior_alpha,
+            prior_beta,
+            prior_mean,
+            prior_var,
+        )
         self._setup_nets(dataset, device, n_layers, slope, decoder_var)
 
         self.interp_sample = None
@@ -51,11 +79,21 @@ class iVAE(nn.Module):
                 self.latent_dim, self.post_dim, n_channels=3
             )
 
-    def _setup_distributions(self, likelihood, posterior, prior: PriorType, device, diag_posterior,
-                             prior_alpha: float = 1, prior_beta: float = 10, prior_mean:float=0., prior_var:float=1.):
+    def _setup_distributions(
+        self,
+        likelihood,
+        posterior,
+        prior: PriorType,
+        device,
+        diag_posterior,
+        prior_alpha: float = 1,
+        prior_beta: float = 10,
+        prior_mean: float = 0.0,
+        prior_var: float = 1.0,
+    ):
         # prior_params
-        self.prior_mean = prior_mean*torch.ones(1).to(device)
-        self.prior_var = prior_var *torch.ones(1).to(device)
+        self.prior_mean = prior_mean * torch.ones(1).to(device)
+        self.prior_var = prior_var * torch.ones(1).to(device)
         self.prior_alpha = prior_alpha
         self.prior_beta = prior_beta
 
@@ -206,8 +244,10 @@ class iVAE(nn.Module):
                 if self.fix_prior is True:
                     log_pz_u = self.prior.log_pdf(
                         latents,
-                        torch.ones((latents.shape[0], self.latent_dim)) * self.prior_alpha,
-                        torch.ones((latents.shape[0], self.latent_dim)) * self.prior_beta,
+                        torch.ones((latents.shape[0], self.latent_dim))
+                        * self.prior_alpha,
+                        torch.ones((latents.shape[0], self.latent_dim))
+                        * self.prior_beta,
                     )
                 else:
                     log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
@@ -225,8 +265,7 @@ class iVAE(nn.Module):
         latent_mean = encoding.mean(0)
         latent_stat = {
             **{
-                f"latent_variance_{i}": latent_variance[i]
-                for i in range(self.data_dim)
+                f"latent_variance_{i}": latent_variance[i] for i in range(self.data_dim)
             },
             **{f"latent_mean_{i}": latent_mean[i] for i in range(self.data_dim)},
             **{f"latent_mean_variance": latent_mean.var()},
