@@ -244,9 +244,13 @@ class iVAE(nn.Module):
                 if self.fix_prior is True:
                     log_pz_u = self.prior.log_pdf(
                         latents,
-                        torch.ones((latents.shape[0], self.latent_dim))
+                        torch.ones(
+                            (latents.shape[0], self.latent_dim), device=latents.device
+                        )
                         * self.prior_alpha,
-                        torch.ones((latents.shape[0], self.latent_dim))
+                        torch.ones(
+                            (latents.shape[0], self.latent_dim), device=latents.device
+                        )
                         * self.prior_beta,
                     )
                 else:
