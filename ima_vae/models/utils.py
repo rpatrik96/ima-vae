@@ -9,4 +9,4 @@ def weights_init(m):
 
 
 ActivationType = Literal["lrelu", "sigmoid", "none"]
-PriorType = Literal["gaussian", "beta", "uniform"]
+PriorType = Literal["gaussian", "beta", "uniform", "laplace"]
