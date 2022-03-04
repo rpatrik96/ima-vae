@@ -8,6 +8,8 @@ command:
   - "--config"
   - "configs/synth/moebius.yaml"
   - ${args}
+entity: ima-vae
+project: priors
 method: grid
 metric:
   goal: minimize
