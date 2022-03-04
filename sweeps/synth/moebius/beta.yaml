@@ -1,0 +1,45 @@
+command:
+  - ${env}
+  - python3
+  - ima_vae/cli.py
+  - fit
+  - "--config"
+  - "configs/trainer.yaml"
+  - "--config"
+  - "configs/synth/moebius.yaml"
+  - ${args}
+method: grid
+metric:
+  goal: minimize
+  name: Metrics/val/neg_elbo
+parameters:
+  model.prior:
+    value: beta
+  model.latent_dim:
+    values:
+      - 2
+      - 3
+      - 5
+      - 10
+  model.prior_alpha:
+    values:
+      - 1
+      - 2
+      - 3
+      - 5
+      - 10
+  model.prior_beta:
+    values:
+      - 1
+      - 2
+      - 3
+      - 5
+      - 10
+early_terminate:
+  type: hyperband
+  eta: 3
+  min_iter: 10
+
+
+
+

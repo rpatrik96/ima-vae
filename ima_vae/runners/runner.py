@@ -29,9 +29,10 @@ class IMAModule(pl.LightningModule):
                  lr: float = 1e-3, n_classes: int = 1, dataset: DatasetType = "synth", log_latents: bool = False,
                  log_reconstruction: bool = False, prior: PriorType = "uniform", prior_alpha: float = 1.,
                  prior_beta: float = 1., prior_mean: float = 0., prior_var: float = 1., decoder_var=0.000001,
-                 fix_prior: bool = True, beta=1., **kwargs):
+                 fix_prior: bool = True, beta=1., diag_posterior:float=True, **kwargs):
         """
 
+        :param diag_posterior: choose a diagonal posterior
         :param beta: beta of the beta-VAE
         :param fix_prior: fix (and not learn) prior distribution
         :param decoder_var: decoder variance
@@ -58,7 +59,7 @@ class IMAModule(pl.LightningModule):
         self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
                                 n_layers=n_layers, activation=activation, device=device, prior=prior,
                                 dataset=self.hparams.dataset, prior_alpha=prior_alpha, prior_beta=prior_beta,
-                                prior_mean=prior_mean, prior_var=prior_var, decoder_var=decoder_var, fix_prior=fix_prior, beta=beta)
+                                prior_mean=prior_mean, prior_var=prior_var, decoder_var=decoder_var, fix_prior=fix_prior, beta=beta, diag_posterior=diag_posterior)
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
             self.logger.watch(self.model, log="all", log_freq=250)
@@ -79,6 +80,7 @@ class IMAModule(pl.LightningModule):
             self._log_mcc(z_est, sources, panel_name)
 
         return neg_elbo
+
 
     def _log_metrics(self, kl_loss, neg_elbo, rec_loss, latent_stat, panel_name):
         self.log(f"{panel_name}/neg_elbo", neg_elbo)

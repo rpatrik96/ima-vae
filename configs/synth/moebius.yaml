@@ -16,6 +16,7 @@ model:
   decoder_var: 1.0e-06
   fix_prior: true
   beta: 1.0
+  diag_posterior: true
 data:
   batch_size: 64
   orthog: false
