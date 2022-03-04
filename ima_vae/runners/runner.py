@@ -233,8 +233,8 @@ class IMAModule(pl.LightningModule):
 
     def _log_mcc(self, estimated_factors, sources, panel_name, log=True):
         mat, _, _ = ima_vae.metrics.mcc.correlation(
-            sources.permute(1, 0).numpy(),
-            estimated_factors.permute(1, 0).numpy(),
+            sources.permute(1, 0).cpu().numpy(),
+            estimated_factors.permute(1, 0).cpu().numpy(),
             method="Pearson",
         )
         mcc = np.mean(np.abs(np.diag(mat)))
