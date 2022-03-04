@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from ima_vae.data.utils import DatasetType
-from ima_vae.distributions import Normal, Uniform, Beta
+from ima_vae.distributions import Normal, Uniform, Beta, Laplace
 from ima_vae.models import nets
 from ima_vae.models.utils import weights_init, PriorType
 
@@ -103,6 +103,8 @@ class iVAE(nn.Module):
             self.prior = Beta()
         elif prior == "uniform":
             self.prior = Uniform()
+        elif prior == "laplace":
+            self.prior = Laplace()
         else:
             self.prior = prior
 
