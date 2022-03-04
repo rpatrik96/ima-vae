@@ -6,9 +6,7 @@ command:
   - "--config"
   - "configs/trainer.yaml"
   - "--config"
-  - "configs/synth/moebius/moebius.yaml"
-  - "--config"
-  - "configs/synth/moebius/2d.yaml"
+  - "configs/synth/moebius.yaml"
   - ${args}
 method: grid
 metric:
@@ -17,6 +15,20 @@ metric:
 parameters:
   model.prior:
     values: [uniform, gaussian, beta]
+  model.latent_dim:
+    values: [2,3,5,10]
+  model.prior_var:
+    distribution: uniform
+      min: 0.01
+      max: 3
+  model.prior_alpha:
+    distribution: uniform
+      min: 1
+      max: 10
+  model.prior_beta:
+    distribution: uniform
+      min: 1
+      max: 10
 early_terminate:
   type: hyperband
   eta: 3

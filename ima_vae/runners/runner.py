@@ -10,35 +10,35 @@ from disent.metrics._sap import _compute_sap
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
-from ima_vae.metrics.conformal import conformal_contrast, col_norm_var
+
 import ima_vae.metrics
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
 from ima_vae.data.utils import DatasetType
 from ima_vae.metrics.cima import cima_kl_diagonality
+from ima_vae.metrics.conformal import conformal_contrast, col_norm_var
 from ima_vae.metrics.mig import compute_mig_with_discrete_factors
 from ima_vae.models.ivae import iVAE
 from ima_vae.models.utils import ActivationType
+from ima_vae.models.utils import PriorType
 from ima_vae.utils import calc_jacobian
 
 
 class IMAModule(pl.LightningModule):
-    def __init__(
-        self,
-        device: str = "cuda" if torch.cuda.is_available() else "cpu",
-        activation: ActivationType = "lrelu",
-        latent_dim: int = 2,
-        n_segments: int = 1,
-        n_layers: int = 2,
-        lr: float = 1e-3,
-        n_classes: int = 1,
-        dataset: DatasetType = "synth",
-        log_latents: bool = False,
-        log_reconstruction: bool = False,
-        prior: str = "uniform",
-        **kwargs,
-    ):
+    def __init__(self, device: str = "cuda" if torch.cuda.is_available() else "cpu",
+                 activation: ActivationType = "lrelu", latent_dim: int = 2, n_segments: int = 1, n_layers: int = 2,
+                 lr: float = 1e-3, n_classes: int = 1, dataset: DatasetType = "synth", log_latents: bool = False,
+                 log_reconstruction: bool = False, prior: PriorType = "uniform", prior_alpha: float = 1.,
+                 prior_beta: float = 1., prior_mean: float = 0., prior_var: float = 1., decoder_var=0.000001,
+                 fix_prior: bool = True, beta=1., **kwargs):
         """
 
+        :param beta: beta of the beta-VAE
+        :param fix_prior: fix (and not learn) prior distribution
+        :param decoder_var: decoder variance
+        :param prior_mean: prior mean
+        :param prior_var: prior variance
+        :param prior_alpha: beta prior alpha shape > 0
+        :param prior_beta: beta prior beta shape > 0
         :param device: device to run on
         :param activation: activation function, any on 'lrelu', 'sigmoid', 'none'
         :param latent_dim: dimension of the latent space
@@ -55,17 +55,10 @@ class IMAModule(pl.LightningModule):
 
         self.save_hyperparameters()
 
-        self.model: iVAE = iVAE(
-            latent_dim=latent_dim,
-            data_dim=latent_dim,
-            n_segments=n_segments,
-            n_classes=n_classes,
-            n_layers=n_layers,
-            activation=activation,
-            device=device,
-            prior=prior,
-            dataset=self.hparams.dataset,
-        )
+        self.model: iVAE = iVAE(latent_dim=latent_dim, data_dim=latent_dim, n_segments=n_segments, n_classes=n_classes,
+                                n_layers=n_layers, activation=activation, device=device, prior=prior,
+                                dataset=self.hparams.dataset, prior_alpha=prior_alpha, prior_beta=prior_beta,
+                                prior_mean=prior_mean, prior_var=prior_var, decoder_var=decoder_var, fix_prior=fix_prior, beta=beta)
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
             self.logger.watch(self.model, log="all", log_freq=250)
@@ -94,13 +87,13 @@ class IMAModule(pl.LightningModule):
         self.log(f"{panel_name}/latent_statistics", latent_stat)
 
     def _log_disentanglement_metrics(
-        self,
-        sources,
-        predicted_latents,
-        discrete_list: List[bool],
-        panel_name,
-        continuous_factors: bool = True,
-        train_split=0.8,
+            self,
+            sources,
+            predicted_latents,
+            discrete_list: List[bool],
+            panel_name,
+            continuous_factors: bool = True,
+            train_split=0.8,
     ):
 
         pass
@@ -149,6 +142,8 @@ class IMAModule(pl.LightningModule):
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
         self._log_mcc(latent, sources, panel_name)
         self._log_cima(latent, panel_name)
+
+        # todo: calc at the end of fit
         # self._log_amari_dist(obs, panel_name)
         # self._log_true_data_likelihood(obs, panel_name)
         # self._log_latents(latent, panel_name)
@@ -160,9 +155,9 @@ class IMAModule(pl.LightningModule):
 
     def _log_reconstruction(self, obs, rec, panel_name, max_img_num: int = 5):
         if (
-            rec is not None
-            and self.hparams.log_reconstruction is True
-            and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
+                rec is not None
+                and self.hparams.log_reconstruction is True
+                and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
         ):
             wandb_logger = self.logger.experiment
             # not images
@@ -244,8 +239,8 @@ class IMAModule(pl.LightningModule):
     def _log_amari_dist(self, obs, panel_name, log=True):
 
         if (
-            self.trainer.datamodule.mixing is not None
-            or self.trainer.datamodule.unmixing is not None
+                self.trainer.datamodule.mixing is not None
+                or self.trainer.datamodule.unmixing is not None
         ):
             J = lambda xx: jnp.array(
                 jacobian(
@@ -305,15 +300,15 @@ class IMAModule(pl.LightningModule):
     def _log_latents(self, latent, panel_name):
 
         if (
-            self.logger is not None
-            and self.hparams.log_latents is True
-            and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
+                self.logger is not None
+                and self.hparams.log_latents is True
+                and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
         ):
 
             wandb_logger = self.logger.experiment
             table = wandb.Table(
                 columns=["Idx"]
-                + [f"latent_{i}" for i in range(self.hparams.latent_dim)]
+                        + [f"latent_{i}" for i in range(self.hparams.latent_dim)]
             )
             for row in range(self.hparams.latent_dim - 1):
                 imgs = [row]

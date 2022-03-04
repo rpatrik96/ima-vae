@@ -23,7 +23,11 @@ class MyLightningCLI(LightningCLI):
             help="Tags for the run on Weights and Biases",
         )
 
-        parser.link_arguments("data.latent_dim", "model.latent_dim")
+        parser.link_arguments("model.latent_dim", "data.latent_dim")
+        parser.link_arguments("model.prior_mean", "data.prior_mean")
+        parser.link_arguments("model.prior_var", "data.prior_var")
+        parser.link_arguments("model.prior_alpha", "data.prior_alpha")
+        parser.link_arguments("model.prior_beta", "data.prior_beta")
 
     # def before_instantiate_classes(self) -> None:
     #     self.config[self.subcommand].trainer.logger.init_args.tags = add_tags(self.config[self.subcommand])

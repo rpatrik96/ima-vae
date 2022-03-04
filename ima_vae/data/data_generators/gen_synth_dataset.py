@@ -63,7 +63,10 @@ def gen_data(
     Niter4condThresh=1e4,
     one_hot_labels=True,
     mobius=False,
-):
+    alpha_shape=np.random.uniform(1, 10),
+    beta_shape=np.random.uniform(1, 10),
+    mean=np.random.uniform(0, 0),
+    var=np.random.uniform(0.01, 3)):
     np.random.seed(2 * seed)
     if nonlin == "none":
         nlayers = 1
@@ -87,21 +90,13 @@ def gen_data(
         segID = range(num_segment_obs * seg, num_segment_obs * (seg + 1))
         print(segID)
         if source == "gaussian":
-            mean = np.random.uniform(0, 0)
-            var = np.random.uniform(0.01, 3)
             sources[segID, :] = np.random.normal(mean, var, (num_segment_obs, num_dim))
         elif source == "laplace":
-            mean = np.random.uniform(0, 0)
-            var = np.random.uniform(0.01, 3)
             sources[segID, :] = np.random.laplace(mean, var, (num_segment_obs, num_dim))
         elif source == "beta":
-            alpha = np.random.uniform(3, 11)
-            beta = np.random.uniform(3, 11)
             key = jax.random.PRNGKey(seed)
             key, subkey = jax.random.split(key)
-            sources[segID, :] = jax.random.beta(
-                subkey, alpha, beta, (num_segment_obs, num_dim)
-            )
+            sources[segID, :] = jax.random.beta(subkey, alpha_shape, beta_shape, (num_segment_obs, num_dim))
             sources -= 0.5
         labels[segID] = seg
 
@@ -119,7 +114,7 @@ def gen_data(
         mixing_matrix = ortho_group.rvs(dim=num_dim)
         mixing_matrix = jnp.array(mixing_matrix)
         # Scalar
-        alpha = 1.0
+        alpha_shape = 1.0
         # Two vectors with data dimensionality
         a = []
         while len(a) < num_dim:
@@ -131,7 +126,7 @@ def gen_data(
         epsilon = 2
 
         mixing, unmixing = build_moebius_transform(
-            alpha, mixing_matrix, a, b, epsilon=epsilon
+            alpha_shape, mixing_matrix, a, b, epsilon=epsilon
         )
         mixing_batched = jax.vmap(mixing)
 

@@ -6,6 +6,16 @@ model:
   log_latents: false
   log_reconstruction: false
   prior: uniform
+  latent_dim: 2
+  n_layers: 3
+  lr: 0.001
+  prior_alpha: 1.0
+  prior_beta: 1.0
+  prior_mean: 0.0
+  prior_var: 1.0
+  decoder_var: 1.0e-06
+  fix_prior: true
+  beta: 1.0
 data:
   batch_size: 64
   orthog: false
