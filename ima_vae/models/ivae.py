@@ -257,6 +257,14 @@ class iVAE(nn.Module):
                     )
                 else:
                     log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
+
+            elif self.prior.name == "laplace":
+                if self.fix_prior is True:
+                    log_pz_u = self.prior.log_pdf(
+                        latents, self.prior_mean, self.prior_var
+                    )
+                else:
+                    log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
         return log_pz_u
 
     def _obs_log_likelihood(self, reconstructions, x):
