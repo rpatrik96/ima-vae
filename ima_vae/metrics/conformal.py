@@ -23,6 +23,12 @@ def conformal_contrast(jacobian: torch.Tensor) -> torch.Tensor:
     return frobenius_diagonality(JJ_T / max_abs_scale)
 
 
+def col_norms(jacobian: torch.Tensor) -> torch.Tensor:
+    col_norms = jacobian.norm(p=2, dim=0)
+
+    return col_norms
+
+
 def col_norm_var(jacobian: torch.Tensor) -> torch.Tensor:
     col_norms = jacobian.norm(p=2, dim=0)
 

@@ -15,7 +15,7 @@ import ima_vae.metrics
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
 from ima_vae.data.utils import DatasetType
 from ima_vae.metrics.cima import cima_kl_diagonality
-from ima_vae.metrics.conformal import conformal_contrast, col_norm_var
+from ima_vae.metrics.conformal import conformal_contrast, col_norm_var, col_norms
 from ima_vae.metrics.mig import compute_mig_with_discrete_factors
 from ima_vae.models.ivae import iVAE
 from ima_vae.models.utils import ActivationType
@@ -253,6 +253,11 @@ class IMAModule(pl.LightningModule):
                 f"{panel_name}/conformal_contrast", conformal_contrast(unmix_jacobian)
             )
             self.log(f"{panel_name}/col_norm_var", col_norm_var(unmix_jacobian))
+
+            if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
+                self.logger.experiment.log(
+                    {f"{panel_name}/col_norms": col_norms(unmix_jacobian)}
+                )
 
         return cima
 
