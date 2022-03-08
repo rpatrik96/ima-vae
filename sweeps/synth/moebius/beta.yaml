@@ -12,8 +12,8 @@ entity: ima-vae
 project: priors
 method: grid
 metric:
-  goal: minimize
-  name: Metrics/val/neg_elbo
+  goal: maximize
+  name: Metrics/val/mcc
 parameters:
   model.prior:
     value: beta
