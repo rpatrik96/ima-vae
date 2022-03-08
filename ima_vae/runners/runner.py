@@ -1,4 +1,4 @@
-from typing import get_args, List
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -315,34 +315,6 @@ class IMAModule(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
         return optimizer
-
-    @staticmethod
-    def add_model_specific_args(parent_parser):
-        parser = parent_parser.add_argument_group("IMA")
-
-        parser.add_argument(
-            "--activation", type=str, choices=get_args(ActivationType), default="none"
-        )
-        parser.add_argument(
-            "--dataset", type=str, choices=get_args(DatasetType), default="synth"
-        )
-        parser.add_argument(
-            "--device",
-            type=torch.device,
-            default=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-        )
-        # parser.add_argument('--latent_dim', type=int, default=2, help='Latent/data dimension')
-        # parser.add_argument('--n_segments', type=int, default=40, help='Number of clusters in latent space')
-        # parser.add_argument('--n_layers', type=int, default=1, help='Number of layers in mixing')
-        parser.add_argument("--lr", type=float, default=1e-2, help="Learning rate")
-        parser.add_argument(
-            "--log-latents", action="store_true", help="Log the latents pairwise"
-        )
-        parser.add_argument(
-            "--log-reconstruction", action="store_true", help="Log the reconstructions"
-        )
-
-        return parent_parser
 
     def _log_latents(self, latent, panel_name):
 

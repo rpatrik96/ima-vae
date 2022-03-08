@@ -53,7 +53,6 @@ trainer:
   reload_dataloaders_every_epoch: false
   auto_lr_find: false
   replace_sampler_ddp: true
-  detect_anomaly: false
   auto_scale_batch_size: false
   prepare_data_per_node: null
   plugins: null
@@ -63,3 +62,40 @@ trainer:
   multiple_trainloader_mode: max_size_cycle
   stochastic_weight_avg: false
   detect_anomaly: true
+model:
+  activation: lrelu
+  n_segments: 1
+  n_classes: 1
+  dataset: synth
+  log_latents: false
+  log_reconstruction: false
+  prior: uniform
+  latent_dim: 2
+  n_layers: 3
+  lr: 0.001
+  prior_alpha: 1.0
+  prior_beta: 1.0
+  prior_mean: 0.0
+  prior_var: 1.0
+  decoder_var: 1.0e-04
+  fix_prior: true
+  beta: 1.0
+  diag_posterior: true
+data:
+  batch_size: 64
+  orthog: false
+  mobius: true
+  linear: false
+  n_segments: 1
+  mixing_layers: 1
+  n_obs: 60000
+  seed: 1
+  n_classes: 1
+  train_ratio: 0.7
+  val_ratio: 0.2
+  dataset: synth
+  train_transforms: null
+  val_transforms: null
+  test_transforms: null
+  dims: null
+  synth_source: uniform
