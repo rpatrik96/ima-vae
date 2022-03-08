@@ -13,7 +13,7 @@ model:
   prior_beta: 1.0
   prior_mean: 0.0
   prior_var: 1.0
-  decoder_var: 1.0e-06
+  decoder_var: 1.0e-04
   fix_prior: true
   beta: 1.0
   diag_posterior: true
