@@ -37,7 +37,19 @@ parameters:
       - 3
       - 5
       - 10
-
+  model.decoder_var:
+    values:
+      - 1e-3
+      - 1e-4
+      - 1e-5
+      - 1e-6
+      - 1e-7
+  model.lr:
+    values:
+      - 2e-4
+      - 1e-3
+      - 2e-3
+      - 5e-3
 
 
 
