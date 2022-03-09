@@ -178,4 +178,4 @@ def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
     if in_training is True:
         model.train()
 
-    return jacobian.mean(0)
+    return jacobian

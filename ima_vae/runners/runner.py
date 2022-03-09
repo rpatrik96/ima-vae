@@ -244,7 +244,8 @@ class IMAModule(pl.LightningModule):
         return mcc
 
     def _log_cima(self, latent, panel_name, log=True):
-        unmix_jacobian = calc_jacobian(self.model.decoder, latent)
+        unmix_jacobians = calc_jacobian(self.model.decoder, latent)
+        unmix_jacobian = unmix_jacobians.mean(0)
         cima = cima_kl_diagonality(unmix_jacobian)
 
         if log is True:
@@ -257,6 +258,17 @@ class IMAModule(pl.LightningModule):
             if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
                 self.logger.experiment.log(
                     {f"{panel_name}/col_norms": col_norms(unmix_jacobian)}
+                )
+
+                # log max column norm for sample-wise jacobian
+
+                sample_col_norms = torch.stack([col_norms(j) for j in unmix_jacobians])
+
+                self.logger.experiment.log(
+                    {
+                        f"{panel_name}/sample_col_max_norms": sample_col_norms.max(0),
+                        f"{panel_name}/sample_col_norms_var": sample_col_norms.var(0),
+                    }
                 )
 
         return cima
