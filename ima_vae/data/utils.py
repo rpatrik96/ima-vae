@@ -52,6 +52,33 @@ def get_load_name(n_obs, n_classes):
     )
 
 
+import torch
+
+
+def build_moebius_transform_torch(alpha, A, a, b, epsilon=2):
+    def mixing_moebius_transform(x):
+        if epsilon == 2:
+            frac = ((x - a) ** 2).sum()
+            frac = frac ** (-1)
+        else:
+            diff = (x - a).abs()
+
+            frac = 1.0
+        return b + frac * alpha * (A @ (x - a).T).T
+
+    B = torch.linalg.inv(A)
+
+    def unmixing_moebius_transform(y):
+        numer = 1 / alpha * (y - b)
+        if epsilon == 2:
+            denom = ((numer) ** 2).sum()
+        else:
+            denom = 1.0
+        return a + 1.0 / denom * (B @ numer.T).T
+
+    return mixing_moebius_transform, unmixing_moebius_transform
+
+
 def build_moebius_transform(alpha, A, a, b, epsilon=2):
     """
     Implements Möbius transformations for D>=2, based on:

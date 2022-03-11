@@ -179,3 +179,42 @@ def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
         model.train()
 
     return jacobian
+
+
+def add_tags(args):
+    try:
+        args.tags
+    except:
+        args.tags = []
+
+    if args.tags is None:
+        args.tags = []
+
+    if args.data.dataset == "synth":
+        args.tags.append("synth")
+
+    if args.data.mobius is True:
+        args.tags.append("mobius")
+
+    if args.data.orthog is True:
+        args.tags.append("orthogonal")
+
+    if args.data.synth_source == "uniform":
+        args.tags.append("uniform_source")
+    elif args.data.synth_source == "gaussian":
+        args.tags.append("gaussian_source")
+    elif args.data.synth_source == "beta":
+        args.tags.append("beta_source")
+    elif args.data.synth_source == "laplace":
+        args.tags.append("laplace_source")
+
+    if args.model.prior == "uniform":
+        args.tags.append("uniform_prior")
+    elif args.model.prior == "gaussian":
+        args.tags.append("gaussian_prior")
+    elif args.model.prior == "beta":
+        args.tags.append("beta_prior")
+    elif args.model.prior == "laplace":
+        args.tags.append("laplace_prior")
+
+    return list(set(args.tags))

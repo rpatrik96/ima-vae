@@ -16,6 +16,7 @@ from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
 from ima_vae.data.utils import DatasetType
 from ima_vae.metrics.cima import cima_kl_diagonality
 from ima_vae.metrics.conformal import conformal_contrast, col_norm_var, col_norms
+from ima_vae.metrics.amari import amari_distance
 from ima_vae.metrics.mig import compute_mig_with_discrete_factors
 from ima_vae.models.ivae import iVAE
 from ima_vae.models.utils import ActivationType
@@ -182,8 +183,8 @@ class IMAModule(pl.LightningModule):
             and self.global_step % 2000 == 0
             or self.current_epoch == (self.trainer.max_epochs - 1)
         ):
-            self._log_amari_dist(obs, panel_name)
-            self._log_true_data_likelihood(obs, panel_name)
+            self._log_amari_dist(obs, sources, panel_name)
+            # self._log_true_data_likelihood(obs, panel_name) #uses jax
             self._log_latents(latent, panel_name)
             self._log_reconstruction(obs, reconstruction, panel_name)
             self._log_disentanglement_metrics(
@@ -296,29 +297,22 @@ class IMAModule(pl.LightningModule):
 
         return true_data_likelihood
 
-    def _log_amari_dist(self, obs, panel_name, log=True):
+    def _log_amari_dist(self, obs, sources, panel_name, log=True):
+
         if (
             self.trainer.datamodule.mixing is not None
             and self.trainer.datamodule.unmixing is not None
         ):
-            J = lambda xx: jnp.array(
-                jacobian(
-                    lambda x: self.model.decoder.forward(x).sum(dim=0),
-                    torch.Tensor(xx.tolist()),
-                ).permute(1, 0, 2)
-            )
-
-            amari_dist = jacobian_amari_distance(
-                jnp.array(obs),
-                J,
-                lambda x: jnp.stack(
-                    [jacfwd(self.trainer.datamodule.mixing)(xx) for xx in x]
-                ),
-                self.trainer.datamodule.unmixing,
-            )
-
+            J_unmix = jacobian(
+                lambda x: self.model.decoder.forward(x).sum(dim=0),
+                obs,
+            ).permute(1, 0, 2)
+            J_mix = jacobian(
+                lambda x: self.trainer.datamodule.mixing(x).sum(dim=0), sources
+            ).permute(1, 0, 2)
+            amari_dist = amari_distance(J_mix, J_unmix)
             if log is True:
-                self.log(f"{panel_name}/amari_dist", amari_dist.tolist())
+                self.log(f"{panel_name}/amari_dist", amari_dist)
         else:
             amari_dist = None
 

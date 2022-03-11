@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import jax
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from jax import numpy as jnp
 from scipy.stats import ortho_group
 from ima_vae.data.utils import (
@@ -9,6 +10,7 @@ from ima_vae.data.utils import (
     cart2pol,
     scatterplot_variables,
     build_moebius_transform,
+    build_moebius_transform_torch,
 )
 
 
@@ -115,22 +117,21 @@ def gen_data(
             plt.close()
         # Generate a random orthogonal matrix
         mixing_matrix = ortho_group.rvs(dim=num_dim)
-        mixing_matrix = jnp.array(mixing_matrix)
         # Scalar
         alpha_shape = 1.0
         # Two vectors with data dimensionality
-        a = []
+        a = []  # a vector in \RR^D
         while len(a) < num_dim:
             s = np.random.randn()
             if np.abs(s) > 0.5:
                 a = a + [s]
-        a = jnp.array(a)  # a vector in \RR^D
         b = jnp.zeros(num_dim)  # a vector in \RR^D
         epsilon = 2
 
         mixing, unmixing = build_moebius_transform(
-            alpha_shape, mixing_matrix, a, b, epsilon=epsilon
+            alpha_shape, jnp.array(mixing_matrix), jnp.array(a), b, epsilon=epsilon
         )
+
         mixing_batched = jax.vmap(mixing)
 
         obs = mixing_batched(obs)
@@ -145,6 +146,15 @@ def gen_data(
             plt.close()
         obs = np.array(obs)
         sources = np.array(sources)
+
+        print("Regenerating Moebius mixing with torch")
+        mixing, unmixing = build_moebius_transform_torch(
+            alpha_shape,
+            torch.Tensor(mixing_matrix),
+            torch.Tensor(a),
+            torch.zeros(num_dim),
+            epsilon=epsilon,
+        )
 
     else:
         mixing = None
