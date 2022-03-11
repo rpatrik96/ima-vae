@@ -56,6 +56,12 @@ import torch
 
 
 def build_moebius_transform_torch(alpha, A, a, b, epsilon=2):
+
+    device = "cuda" if torch.cuda.is_available() is True else "cpu"
+    A = A.to(device)
+    a = a.to(device)
+    b = b.to(device)
+
     def mixing_moebius_transform(x):
         if epsilon == 2:
             frac = ((x - a) ** 2).sum()
