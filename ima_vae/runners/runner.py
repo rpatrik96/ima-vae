@@ -147,13 +147,13 @@ class IMAModule(pl.LightningModule):
         ys_train, ys_test = sources[:num_train, :], sources[num_train:, :]
 
         sap: dict = _compute_sap(
-            mus_train, ys_train, mus_test, ys_test, continuous_factors
+            mus_train.cpu(), ys_train.cpu(), mus_test.cpu(), ys_test.cpu(), continuous_factors
         )
         self.log(f"{panel_name}/sap", sap)
 
         # uses train-val-test splits of 0.8-0.1-0.1
         mig: dict = compute_mig_with_discrete_factors(
-            predicted_latents, sources, discrete_list
+            predicted_latents.cpu(), sources.cpu(), discrete_list
         )
         self.log(f"{panel_name}/mig", mig)
 
