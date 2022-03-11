@@ -44,4 +44,10 @@ class MyLightningCLI(LightningCLI):
             self.trainer.logger.watch(self.model, log="all", log_freq=250)
 
 
-cli = MyLightningCLI(IMAModule, IMADataModule, save_config_callback=None, run=True)
+cli = MyLightningCLI(
+    IMAModule,
+    IMADataModule,
+    save_config_callback=None,
+    run=True,
+    parser_kwargs={"parse_as_dict": False},
+)
