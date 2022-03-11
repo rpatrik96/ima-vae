@@ -35,6 +35,7 @@ class MyLightningCLI(LightningCLI):
             self.config[self.subcommand]
         )
         import jax
+
         jax.config.update("jax_platform_name", "cpu")
 
     def before_fit(self):
