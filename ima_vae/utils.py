@@ -190,31 +190,31 @@ def add_tags(args):
     if args.tags is None:
         args.tags = []
 
-    if args.data.dataset is "synth":
+    if args.data.dataset == "synth":
         args.tags.append("synth")
 
-    if args.data.moebius is True:
-        args.tags.append("moebius")
+    if args.data.mobius is True:
+        args.tags.append("mobius")
 
     if args.data.orthog is True:
         args.tags.append("orthogonal")
 
     if args.data.synth_source == "uniform":
         args.tags.append("uniform_source")
-    if args.data.synth_source == "gaussian":
+    elif args.data.synth_source == "gaussian":
         args.tags.append("gaussian_source")
-    if args.data.synth_source == "beta":
+    elif args.data.synth_source == "beta":
         args.tags.append("beta_source")
-    if args.data.synth_source == "laplace":
+    elif args.data.synth_source == "laplace":
         args.tags.append("laplace_source")
 
     if args.model.prior == "uniform":
         args.tags.append("uniform_prior")
-    if args.model.prior == "gaussian":
+    elif args.model.prior == "gaussian":
         args.tags.append("gaussian_prior")
-    if args.model.prior == "beta":
+    elif args.model.prior == "beta":
         args.tags.append("beta_prior")
-    if args.model.prior == "laplace":
+    elif args.model.prior == "laplace":
         args.tags.append("laplace_prior")
 
     return list(set(args.tags))
