@@ -3,6 +3,7 @@ from pytorch_lightning.loggers.wandb import WandbLogger
 
 from ima_vae.data.datamodules import IMADataModule
 from ima_vae.runners.runner import IMAModule
+from ima_vae.utils import add_tags
 
 
 class MyLightningCLI(LightningCLI):
@@ -29,8 +30,10 @@ class MyLightningCLI(LightningCLI):
         parser.link_arguments("model.prior_alpha", "data.prior_alpha")
         parser.link_arguments("model.prior_beta", "data.prior_beta")
 
-    # def before_instantiate_classes(self) -> None:
-    #     self.config[self.subcommand].trainer.logger.init_args.tags = add_tags(self.config[self.subcommand])
+    def before_instantiate_classes(self) -> None:
+        self.config[self.subcommand].trainer.logger.init_args.tags = add_tags(
+            self.config[self.subcommand]
+        )
 
     def before_fit(self):
         if isinstance(self.trainer.logger, WandbLogger) is True:
