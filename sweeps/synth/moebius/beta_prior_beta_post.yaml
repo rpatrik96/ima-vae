@@ -16,23 +16,31 @@ metric:
   name: Metrics/val/mcc
 parameters:
   model.prior:
-    value: laplace
+    value: beta
+  data.synth_source:
+    value: beta
   model.latent_dim:
     values:
       - 2
       - 3
       - 5
       - 10
-  model.prior_var:
+  model.prior_alpha:
     values:
-      - 0.01
-      - 0.1
-      - 0.5
       - 1
+      - 2
       - 3
+      - 5
+      - 10
+  model.prior_beta:
+    values:
+      - 1
+      - 2
+      - 3
+      - 5
+      - 10
   model.decoder_var:
     values:
-      - 1e-3
       - 1e-4
       - 1e-5
       - 1e-6
@@ -43,7 +51,6 @@ parameters:
       - 1e-3
       - 2e-3
       - 5e-3
-
 
 
 

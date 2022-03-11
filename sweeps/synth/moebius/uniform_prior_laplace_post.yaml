@@ -16,6 +16,8 @@ metric:
   name: Metrics/val/mcc
 parameters:
   model.prior:
+    value: laplace
+  data.synth_source:
     value: uniform
   model.latent_dim:
     values:
@@ -23,9 +25,15 @@ parameters:
       - 3
       - 5
       - 10
+  model.prior_var:
+    values:
+      - 0.01
+      - 0.1
+      - 0.5
+      - 1
+      - 3
   model.decoder_var:
     values:
-      - 1e-3
       - 1e-4
       - 1e-5
       - 1e-6
@@ -36,6 +44,8 @@ parameters:
       - 1e-3
       - 2e-3
       - 5e-3
+
+
 
 
 
