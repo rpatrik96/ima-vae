@@ -1,19 +1,23 @@
 from typing import Tuple
 
 import numpy as np
+import torch
+
 from ima_vae.metrics.mig import mutual_information
 
 
 def test_mutual_information():
     ys, mus, mixing = generate_test_data(1000)
-    m_val, m_test = mutual_information(mus, ys, [1, 0, 0])
+    m_val, m_test = mutual_information(torch.Tensor(mus), torch.Tensor(ys), [1, 0, 0])
     print(mixing)
     print(m_val)
     print(m_test)
     assert np.all(np.argmax(m_val, axis=0) == np.argmax(mixing, axis=0))
 
 
-def generate_test_data(number_of_samples: int) -> Tuple[np.array]:
+def generate_test_data(
+    number_of_samples: int,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Generates a test dataset with one discrete and two continuous
     generating factors, mapped to a five dimensional latent
     """
@@ -24,5 +28,5 @@ def generate_test_data(number_of_samples: int) -> Tuple[np.array]:
     mixing = np.array(
         [[0.1, 0.1, 0.1], [0.1, 0.1, 1], [0.1, 1, 0.1], [1, 0.1, 0.1], [1, 1, 1]]
     )
-    latents = generating_factors @ mixing.T
+    latents = np.array(generating_factors @ mixing.T)
     return generating_factors, latents, mixing

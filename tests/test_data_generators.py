@@ -9,9 +9,9 @@ from ima_vae.metrics.cima import cima_kl_diagonality
 def test_moebius_orthogonality(args):
     # generate moebius transform
     alpha = 1.0
-    mixing_matrix = ortho_group.rvs(args.latent_dim)
-    a = np.random.rand(args.latent_dim)
-    b = np.zeros(args.latent_dim)
+    mixing_matrix = ortho_group.rvs(args.model.latent_dim)
+    a = np.random.rand(args.model.latent_dim)
+    b = np.zeros(args.model.latent_dim)
     mixing_moebius, _ = build_moebius_transform(alpha, mixing_matrix, a, b)
 
     # calculate jacobian

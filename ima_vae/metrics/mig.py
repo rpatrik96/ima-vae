@@ -49,7 +49,7 @@ def get_prediction_score(mus: np.array, ys: np.array, discrete: bool) -> float:
 
 def mutual_information(
     mus: np.array, ys: np.array, discrete: List[bool]
-) -> Tuple[np.array]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Calculates a 'mutual information like' quantity between mus and ys
 
     Arguments:

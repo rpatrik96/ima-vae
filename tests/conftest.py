@@ -1,24 +1,20 @@
-import pytest
-from pytorch_lightning import Trainer, seed_everything
+from argparse import Namespace
 
-from ima_vae.args import parse_args
-from ima_vae.data.datamodules import IMADataModule
-from ima_vae.runners.runner import IMAModule
+import hydra
+import pytest
+from hydra import compose, initialize
+from pytorch_lightning import seed_everything
 
 
 @pytest.fixture(autouse=True)
 def args():
-    parser = parse_args()
-    # add model specific args
-    parser = IMAModule.add_model_specific_args(parser)
-    # add data specific args
-    parser = IMADataModule.add_argparse_args(parser)
-    # add all the available trainer options to argparse
-    # ie: now --gpus --num_nodes ... --fast_dev_run all work in the cli
-    parser = Trainer.add_argparse_args(parser)
-    args = parser.parse_args([])
+    hydra.core.global_hydra.GlobalHydra.instance().clear()
+    initialize(config_path="../configs", job_name="test_app")
 
-    # seed
-    seed_everything(args.seed)
+    cfg = compose(
+        config_name="trainer",
+    )
 
-    return args
+    seed_everything(cfg.seed_everything)
+
+    return Namespace(**cfg)
