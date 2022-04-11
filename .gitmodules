@@ -3,4 +3,4 @@
 	url = https://github.com/lgresele/independent-mechanism-analysis
 [submodule "carefl"]
 	path = carefl
-	url = https://github.com/piomonti/carefl.git
+	url = https://github.com/rpatrik96/carefl.git
