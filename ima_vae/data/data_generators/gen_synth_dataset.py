@@ -98,7 +98,7 @@ def gen_data(
         mixing, obs, sources, unmixing = gen_mobius(num_dim, obs, sources)
     else:
         if ar_flow is True:
-            mixing, obs, sources, unmixing = gen_ar_flow(num_dim, obs, sources)
+            mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
         else:
             mixing, obs, sources, unmixing = gen_mlp(
                 neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources
@@ -116,7 +116,7 @@ def gen_data(
     )
 
 
-def gen_ar_flow(num_dim, obs, sources):
+def gen_ar_flow(num_dim, sources):
     assert num_dim % 2 == 0 and num_dim > 2
     # configuration
     config_file = "simulations.yaml"
