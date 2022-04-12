@@ -2,6 +2,7 @@ import argparse
 from os import makedirs
 from os.path import dirname, abspath, join, isdir
 
+import cv2
 import numpy as np
 import torch
 
@@ -181,9 +182,6 @@ if __name__ == "__main__":
     X, Y = generate_isprites(args.nclasses, obs_per_class, args.lower, args.upper)
     S = torch.Tensor(S).flatten(0, 1).numpy().astype(np.float32)
     Y = to_one_hot(Y)[0].astype(np.float32)
-
-    import cv2
-    import numpy as np
 
     if args.project is True:
         rows, cols = X.shape[1], X.shape[2]
