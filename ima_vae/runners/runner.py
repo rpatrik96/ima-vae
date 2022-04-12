@@ -45,7 +45,7 @@ class IMAModule(pl.LightningModule):
         decoder_var=0.000001,
         fix_prior: bool = True,
         beta=1.0,
-        diag_posterior: float = True,
+        diag_posterior: bool = True,
         **kwargs,
     ):
         """

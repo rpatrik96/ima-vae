@@ -85,6 +85,7 @@ data:
   batch_size: 64
   orthog: false
   mobius: true
+  ar_flow: false
   linear: false
   n_segments: 1
   mixing_layers: 1

@@ -33,10 +33,12 @@ class IMADataModule(pl.LightningDataModule):
         prior_beta: float = 1.0,
         prior_var: float = 1.0,
         prior_mean: float = 0.0,
+        ar_flow: bool = False,
         **kwargs,
     ):
         """
 
+        :param ar_flow: use ar_flow in the data generation process
         :param prior_alpha: beta prior alpha shape > 0
         :param prior_beta: beta prior beta shape > 0
         :param prior_mean: prior mean
@@ -93,14 +95,15 @@ class IMADataModule(pl.LightningDataModule):
                 num_segment=self.hparams.n_segments,
                 num_segment_obs=n_obs_per_seg,
                 orthog=self.hparams.orthog,
-                mobius=self.hparams.mobius,
-                source=self.hparams.synth_source,
                 seed=self.hparams.seed,
                 nonlin="none" if self.hparams.linear is True else "lrelu",
+                source=self.hparams.synth_source,
+                mobius=self.hparams.mobius,
                 alpha_shape=self.hparams.prior_alpha,
                 beta_shape=self.hparams.prior_beta,
                 mean=self.hparams.prior_mean,
                 var=self.hparams.prior_var,
+                ar_flow=self.hparams.ar_flow,
             )
         else:
             raise ValueError
