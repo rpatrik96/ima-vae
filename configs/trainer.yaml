@@ -95,6 +95,7 @@ data:
   train_ratio: 0.7
   val_ratio: 0.2
   dataset: synth
+  projective: false
   train_transforms: null
   val_transforms: null
   test_transforms: null

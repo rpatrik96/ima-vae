@@ -132,6 +132,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shape", type=bool, default=False, help="True if you want shape as a factor"
     )
+    parser.add_argument(
+        "--project",
+        type=bool,
+        default=False,
+        help="True if you want to apply a projective transformation (to destroy colum-ortogonality)",
+    )
     args = parser.parse_args()
 
     nfactors = 4
@@ -167,12 +173,31 @@ if __name__ == "__main__":
     if args.shape:
         nfactors += 1
         filename += "_shape"
+    if args.project:
+        filename += "_projective"
 
     obs_per_class = int(args.nobs / args.nclasses)
     S = np.zeros((args.nclasses, obs_per_class, nfactors))
     X, Y = generate_isprites(args.nclasses, obs_per_class, args.lower, args.upper)
     S = torch.Tensor(S).flatten(0, 1).numpy().astype(np.float32)
     Y = to_one_hot(Y)[0].astype(np.float32)
+
+    import cv2
+    import numpy as np
+
+    if args.project is True:
+        rows, cols = X.shape[1], X.shape[2]
+        src_points = np.float32(
+            [[0, 0], [0, rows - 1], [cols / 2, 0], [cols / 2, rows - 1]]
+        )
+        dst_points = np.float32(
+            [[8, 3], [4, rows - 17], [cols / 2 + 10, 15], [cols / 2 + 8, rows - 26]]
+        )
+        projective_matrix = cv2.getPerspectiveTransform(src_points, dst_points)
+
+        X = np.array(
+            [cv2.warpPerspective(x, projective_matrix, (cols, rows)) for x in X]
+        )
 
     np.savez_compressed(
         join(sprites_dir, filename), X, Y, S, beta_params, angle_params, shape_probs

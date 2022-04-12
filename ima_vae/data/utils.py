@@ -41,15 +41,18 @@ def scatterplot_variables(x, title, colors="None", cmap="hsv"):
     plt.gca().set_aspect("equal", adjustable="box")
 
 
-def get_load_name(n_obs, n_classes):
-    return (
+def get_load_name(n_obs, n_classes, projective: bool = False):
+
+    filename = (
         "isprites_nclasses_"
         + str(n_classes)
         + "_nobs_"
         + str(int(n_obs))
         + "_lower_2_upper_15"
-        + ".npz"
     )
+    if projective is True:
+        filename += "_projective"
+    return filename + ".npz"
 
 
 import torch
@@ -119,9 +122,9 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
     return mixing_moebius_transform, unmixing_moebius_transform
 
 
-def load_sprites(n_obs, n_classes):
+def load_sprites(n_obs, n_classes, projective):
     data_dir = join(dirname(abspath(__file__)), "sprites_data")
-    path = join(data_dir, filename := get_load_name(n_obs, n_classes))
+    path = join(data_dir, filename := get_load_name(n_obs, n_classes, projective))
 
     obs = np.load(path)["arr_0"]
     labels = np.load(path)["arr_1"]
