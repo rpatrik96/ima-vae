@@ -139,6 +139,12 @@ if __name__ == "__main__":
         default=False,
         help="True if you want to apply a projective transformation (to destroy colum-ortogonality)",
     )
+    parser.add_argument(
+        "--affine",
+        type=bool,
+        default=False,
+        help="True if you want to apply an affine transformation (to destroy colum-ortogonality)",
+    )
     args = parser.parse_args()
 
     nfactors = 4
@@ -176,6 +182,8 @@ if __name__ == "__main__":
         filename += "_shape"
     if args.project:
         filename += "_projective"
+    if args.affine:
+        filename += "_affine"
 
     obs_per_class = int(args.nobs / args.nclasses)
     S = np.zeros((args.nclasses, obs_per_class, nfactors))
@@ -184,6 +192,8 @@ if __name__ == "__main__":
     Y = to_one_hot(Y)[0].astype(np.float32)
 
     if args.project is True:
+
+        print("Applying projective transformation...")
         rows, cols = X.shape[1], X.shape[2]
         src_points = np.float32(
             [[0, 0], [0, rows - 1], [cols / 2, 0], [cols / 2, rows - 1]]
@@ -196,6 +206,19 @@ if __name__ == "__main__":
         X = np.array(
             [cv2.warpPerspective(x, projective_matrix, (cols, rows)) for x in X]
         )
+    if args.affine is True:
+        print("Applying affine transformation...")
+
+        rows, cols = X.shape[1], X.shape[2]
+        src_points = np.float32(
+            [[rows // 4, cols // 4], [rows, cols // 4], [rows // 4, cols - 16]]
+        )
+        dst_points = np.float32(
+            [[rows // 6, cols // 2], [rows, cols // 4], [rows // 2, cols]]
+        )
+        affine_matrix = cv2.getAffineTransform(src_points, dst_points)
+
+        X = np.array([cv2.warpAffine(x, affine_matrix, (cols, rows)) for x in X])
 
     np.savez_compressed(
         join(sprites_dir, filename), X, Y, S, beta_params, angle_params, shape_probs

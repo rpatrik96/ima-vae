@@ -35,10 +35,12 @@ class IMADataModule(pl.LightningDataModule):
         prior_mean: float = 0.0,
         ar_flow: bool = False,
         projective=False,
+        affine=False,
         **kwargs,
     ):
         """
 
+        :param affine: flag to use affine transformation for image generation
         :param projective: flag to use projective transformation for image generation
         :param ar_flow: use ar_flow in the data generation process
         :param prior_alpha: beta prior alpha shape > 0
@@ -79,7 +81,10 @@ class IMADataModule(pl.LightningDataModule):
                 self.unmixing,
                 self.discrete_list,
             ) = load_sprites(
-                self.hparams.n_obs, self.hparams.n_classes, self.hparams.projective
+                self.hparams.n_obs,
+                self.hparams.n_classes,
+                self.hparams.projective,
+                self.hparams.affine,
             )
         elif self.hparams.dataset == "synth":
             transform = None

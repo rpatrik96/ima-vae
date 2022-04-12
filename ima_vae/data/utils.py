@@ -41,7 +41,7 @@ def scatterplot_variables(x, title, colors="None", cmap="hsv"):
     plt.gca().set_aspect("equal", adjustable="box")
 
 
-def get_load_name(n_obs, n_classes, projective: bool = False):
+def get_load_name(n_obs, n_classes, projective: bool = False, affine=False):
 
     filename = (
         "isprites_nclasses_"
@@ -52,6 +52,9 @@ def get_load_name(n_obs, n_classes, projective: bool = False):
     )
     if projective is True:
         filename += "_projective"
+    if affine is True:
+        filename += "_affine"
+
     return filename + ".npz"
 
 
@@ -122,9 +125,11 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
     return mixing_moebius_transform, unmixing_moebius_transform
 
 
-def load_sprites(n_obs, n_classes, projective):
+def load_sprites(n_obs, n_classes, projective, affine):
     data_dir = join(dirname(abspath(__file__)), "sprites_data")
-    path = join(data_dir, filename := get_load_name(n_obs, n_classes, projective))
+    path = join(
+        data_dir, filename := get_load_name(n_obs, n_classes, projective, affine)
+    )
 
     obs = np.load(path)["arr_0"]
     labels = np.load(path)["arr_1"]
