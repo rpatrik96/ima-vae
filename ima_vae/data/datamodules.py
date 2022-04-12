@@ -36,10 +36,16 @@ class IMADataModule(pl.LightningDataModule):
         ar_flow: bool = False,
         projective=False,
         affine=False,
+        deltah=0,
+        deltas=0,
+        deltav=0,
         **kwargs,
     ):
         """
 
+        :param deltah: Disturbance in the Hue channel
+        :param deltas: Disturbance in the Saturation channel
+        :param deltav: Disturbance in the Value channel
         :param affine: flag to use affine transformation for image generation
         :param projective: flag to use projective transformation for image generation
         :param ar_flow: use ar_flow in the data generation process
@@ -85,6 +91,9 @@ class IMADataModule(pl.LightningDataModule):
                 self.hparams.n_classes,
                 self.hparams.projective,
                 self.hparams.affine,
+                self.hparams.deltah != 0
+                or self.hparams.deltas != 0
+                or self.hparams.deltav != 0,
             )
         elif self.hparams.dataset == "synth":
             transform = None

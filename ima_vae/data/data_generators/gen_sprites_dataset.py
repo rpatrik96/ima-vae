@@ -109,6 +109,22 @@ def generate_isprites(num_classes, obs_per_class, lower, upper):
     return np.array(full_obs), np.array(full_labels)
 
 
+def hsv_change(
+    img: np.ndarray, delta_h: int = 0, delta_s: int = 0, delta_v: int = 0
+) -> np.ndarray:
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    h, s, v = cv2.split(hsv)
+
+    h = cv2.add(h, delta_h)
+    s = cv2.add(s, delta_s)
+    v = cv2.add(v, delta_v)
+
+    hsv = cv2.merge([h, s, v])
+    rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+
+    return rgb
+
+
 if __name__ == "__main__":
     # Command line arguments
     parser = argparse.ArgumentParser()
@@ -144,6 +160,15 @@ if __name__ == "__main__":
         type=bool,
         default=False,
         help="True if you want to apply an affine transformation (to destroy colum-ortogonality)",
+    )
+    parser.add_argument(
+        "--deltah", type=int, default=0, help="Disturbance in the Hue channel"
+    )
+    parser.add_argument(
+        "--deltas", type=int, default=0, help="Disturbance in the Saturation channel"
+    )
+    parser.add_argument(
+        "--deltav", type=int, default=0, help="Disturbance in the Value channel"
     )
     args = parser.parse_args()
 
@@ -184,6 +209,8 @@ if __name__ == "__main__":
         filename += "_projective"
     if args.affine:
         filename += "_affine"
+    if args.deltah != 0 or args.deltas != 0 or args.deltav != 0:
+        filename += "_deltahsv"
 
     obs_per_class = int(args.nobs / args.nclasses)
     S = np.zeros((args.nclasses, obs_per_class, nfactors))
@@ -219,6 +246,10 @@ if __name__ == "__main__":
         affine_matrix = cv2.getAffineTransform(src_points, dst_points)
 
         X = np.array([cv2.warpAffine(x, affine_matrix, (cols, rows)) for x in X])
+
+    if args.deltah != 0 or args.deltas != 0 or args.deltav != 0:
+        print("Applying color transformation in HSV space...")
+        X = np.array([hsv_change(x, args.deltah, args.deltas, args.deltav) for x in X])
 
     np.savez_compressed(
         join(sprites_dir, filename), X, Y, S, beta_params, angle_params, shape_probs
