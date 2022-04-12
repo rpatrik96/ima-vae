@@ -117,7 +117,7 @@ def gen_data(
 
 
 def gen_ar_flow(num_dim, obs, sources):
-    assert num_dim % 2 == 0
+    assert num_dim % 2 == 0 and num_dim > 2
     # configuration
     config_file = "simulations.yaml"
     config_dir = join(
