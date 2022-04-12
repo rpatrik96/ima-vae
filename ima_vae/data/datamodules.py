@@ -34,11 +34,11 @@ class IMADataModule(pl.LightningDataModule):
         prior_var: float = 1.0,
         prior_mean: float = 0.0,
         ar_flow: bool = False,
-        projective=False,
-        affine=False,
-        deltah=0,
-        deltas=0,
-        deltav=0,
+        projective: bool = False,
+        affine: bool = False,
+        deltah: int = 0,
+        deltas: int = 0,
+        deltav: int = 0,
         **kwargs,
     ):
         """
