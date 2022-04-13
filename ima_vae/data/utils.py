@@ -4,7 +4,7 @@ from typing import Literal
 import numpy as np
 from matplotlib import pyplot as plt
 
-from ima_vae.data.data_generators.spriteworld.utils import sprites_filename
+from spriteworld.spriteworld.utils import sprites_filename
 
 
 def to_one_hot(x, m=None):
