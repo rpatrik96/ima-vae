@@ -4,3 +4,6 @@
 [submodule "carefl"]
 	path = carefl
 	url = https://github.com/rpatrik96/carefl.git
+[submodule "spriteworld"]
+	path = spriteworld
+	url = https://github.com/rpatrik96/custom-dsprites
