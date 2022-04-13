@@ -4,6 +4,8 @@ from typing import Literal
 import numpy as np
 from matplotlib import pyplot as plt
 
+from ima_vae.data.data_generators.spriteworld.utils import sprites_filename
+
 
 def to_one_hot(x, m=None):
     "batch one hot"
@@ -39,31 +41,6 @@ def scatterplot_variables(x, title, colors="None", cmap="hsv"):
 
     plt.axis("off")
     plt.gca().set_aspect("equal", adjustable="box")
-
-
-def get_load_name(
-    n_obs,
-    n_classes,
-    projective: bool = False,
-    affine: bool = False,
-    hsv_change: bool = False,
-):
-
-    filename = (
-        "isprites_nclasses_"
-        + str(n_classes)
-        + "_nobs_"
-        + str(int(n_obs))
-        + "_lower_2_upper_15"
-    )
-    if projective is True:
-        filename += "_projective"
-    if affine is True:
-        filename += "_affine"
-    if hsv_change is True:
-        filename += "_deltahsv"
-
-    return filename + ".npz"
 
 
 import torch
@@ -133,10 +110,14 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
     return mixing_moebius_transform, unmixing_moebius_transform
 
 
+DatasetType = Literal["synth", "image"]
+
+
 def load_sprites(n_obs, n_classes, projective, affine, hsv_change=False):
     data_dir = join(dirname(abspath(__file__)), "sprites_data")
     path = join(
-        data_dir, filename := get_load_name(n_obs, n_classes, projective, affine)
+        data_dir,
+        filename := sprites_filename(n_obs, n_classes, projective, affine, hsv_change),
     )
 
     obs = np.load(path)["arr_0"]
@@ -152,6 +133,3 @@ def load_sprites(n_obs, n_classes, projective, affine, hsv_change=False):
         discrete_list.append(False)
 
     return labels, obs, sources, mixing, unmixing, discrete_list
-
-
-DatasetType = Literal["synth", "image"]

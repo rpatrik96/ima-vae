@@ -8,7 +8,7 @@ from torch.utils.data import random_split
 
 from ima_vae.data.data_generators import gen_synth_dataset
 from ima_vae.data.dataset import ConditionalDataset
-from ima_vae.data.utils import load_sprites, DatasetType
+from ima_vae.data.utils import DatasetType, load_sprites
 
 
 class IMADataModule(pl.LightningDataModule):
