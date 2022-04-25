@@ -29,8 +29,20 @@ class MyLightningCLI(LightningCLI):
         parser.link_arguments("model.prior_var", "data.prior_var")
         parser.link_arguments("model.prior_alpha", "data.prior_alpha")
         parser.link_arguments("model.prior_beta", "data.prior_beta")
+        parser.link_arguments("model.dataset", "data.dataset")
 
     def before_instantiate_classes(self) -> None:
+
+        if self.config[self.subcommand].model.dataset == "image":
+            nfactors = (
+                4
+                + int(self.config[self.subcommand].data.shape)
+                + int(self.config[self.subcommand].data.angle)
+            )
+            self.config[self.subcommand].model.latent_dim = self.config[
+                self.subcommand
+            ].data.latent_dim = nfactors
+
         self.config[self.subcommand].trainer.logger.init_args.tags = add_tags(
             self.config[self.subcommand]
         )
