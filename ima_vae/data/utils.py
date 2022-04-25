@@ -1,9 +1,12 @@
-from os.path import join, dirname, abspath
+from os import makedirs
+from os.path import dirname, abspath, join, isdir
+from os.path import isfile
 from typing import Literal
 
 import numpy as np
 from matplotlib import pyplot as plt
 
+from spriteworld.spriteworld.gen_sprites_dataset import sprites_gen_wrapper
 from spriteworld.spriteworld.utils import sprites_filename
 
 
@@ -47,7 +50,6 @@ import torch
 
 
 def build_moebius_transform_torch(alpha, A, a, b, epsilon=2):
-
     device = "cuda" if torch.cuda.is_available() is True else "cpu"
     A = A.to(device)
     a = a.to(device)
@@ -113,16 +115,39 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
 DatasetType = Literal["synth", "image"]
 
 
-def load_sprites(n_obs, n_classes, projective, affine, hsv_change=False):
-    data_dir = join(dirname(abspath(__file__)), "sprites_data")
+def load_sprites(
+    n_obs, n_classes, projective, affine, deltah, deltas, deltav, angle, shape
+):
+    sprites_dir = join(dirname(abspath(__file__)), "sprites_data")
+    hsv_change = deltah != 0 or deltas != 0 or deltav != 0
+
     path = join(
-        data_dir,
+        sprites_dir,
         filename := sprites_filename(n_obs, n_classes, projective, affine, hsv_change),
     )
 
-    obs = np.load(path)["arr_0"]
-    labels = np.load(path)["arr_1"]
-    sources = np.load(path)["arr_2"]
+    if not isdir(sprites_dir):
+        makedirs(sprites_dir)
+
+    if not isfile(path):
+        obs, labels, sources = sprites_gen_wrapper(
+            nobs=10000,
+            nclasses=1,
+            projective=projective,
+            affine=affine,
+            deltah=deltah,
+            deltas=deltas,
+            deltav=deltav,
+            angle=angle,
+            shape=shape,
+            lower=2,
+            upper=15,
+        )
+
+    else:
+        obs = np.load(path)["arr_0"]
+        labels = np.load(path)["arr_1"]
+        sources = np.load(path)["arr_2"]
 
     mixing, unmixing = None, None
 

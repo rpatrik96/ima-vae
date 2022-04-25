@@ -100,6 +100,8 @@ data:
   deltah: 0
   deltas: 0
   deltav: 0
+  angle: false
+  shape: false
   train_transforms: null
   val_transforms: null
   test_transforms: null

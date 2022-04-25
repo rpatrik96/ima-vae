@@ -39,10 +39,14 @@ class IMADataModule(pl.LightningDataModule):
         deltah: int = 0,
         deltas: int = 0,
         deltav: int = 0,
+        angle: bool = False,
+        shape: bool = False,
         **kwargs,
     ):
         """
 
+        :param angle: angle flag for dSprites
+        :param shape: shape flag for dSprites
         :param deltah: Disturbance in the Hue channel
         :param deltas: Disturbance in the Saturation channel
         :param deltav: Disturbance in the Value channel
@@ -91,9 +95,11 @@ class IMADataModule(pl.LightningDataModule):
                 self.hparams.n_classes,
                 self.hparams.projective,
                 self.hparams.affine,
-                self.hparams.deltah != 0
-                or self.hparams.deltas != 0
-                or self.hparams.deltav != 0,
+                self.hparams.deltah,
+                self.hparams.deltas,
+                self.hparams.deltav,
+                self.hparams.angle,
+                self.hparams.shape,
             )
         elif self.hparams.dataset == "synth":
             transform = None
