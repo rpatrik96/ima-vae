@@ -6,8 +6,8 @@ from typing import Literal
 import numpy as np
 from matplotlib import pyplot as plt
 
-from spriteworld.spriteworld.gen_sprites_dataset import sprites_gen_wrapper
-from spriteworld.spriteworld.utils import sprites_filename
+from spriteworld.gen_sprites_dataset import sprites_gen_wrapper
+from spriteworld.utils import sprites_filename
 
 
 def to_one_hot(x, m=None):
@@ -131,8 +131,8 @@ def load_sprites(
 
     if not isfile(path):
         obs, labels, sources = sprites_gen_wrapper(
-            nobs=10000,
-            nclasses=1,
+            nobs=n_obs,
+            nclasses=n_classes,
             projective=projective,
             affine=affine,
             deltah=deltah,
