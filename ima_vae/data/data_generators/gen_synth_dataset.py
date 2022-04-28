@@ -16,6 +16,7 @@ from ima_vae.data.utils import (
     scatterplot_variables,
     build_moebius_transform,
     build_moebius_transform_torch,
+    random_cos_sim
 )
 
 
@@ -232,7 +233,7 @@ def gen_mobius(num_dim, obs, sources, break_orthog):
     )
     mixing_batched = jax.vmap(mixing)
     obs = mixing_batched(obs)
-    
+
     if num_dim == 2:
         v1 = np.array([1,0])
         v2 = rand_cos_sim(v1, break_orthog)
