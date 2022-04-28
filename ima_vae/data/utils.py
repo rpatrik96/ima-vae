@@ -10,6 +10,26 @@ from spriteworld.gen_sprites_dataset import sprites_gen_wrapper
 from spriteworld.utils import sprites_filename
 
 
+def rand_cos_sim(v, costheta):
+    # Form the unit vector parallel to v:
+    u = v / np.linalg.norm(v)
+
+    # Pick a random vector:
+    r = np.random.multivariate_normal(np.zeros_like(v), np.eye(len(v)))
+
+    # Form a vector perpendicular to v:
+    uperp = r - r.dot(u) * u
+
+    # Make it a unit vector:
+    uperp = uperp / np.linalg.norm(uperp)
+
+    # w is the linear combination of u and uperp with coefficients costheta
+    # and sin(theta) = sqrt(1 - costheta**2), respectively:
+    w = costheta * u + np.sqrt(1 - costheta**2) * uperp
+
+    return w
+
+
 def to_one_hot(x, m=None):
     "batch one hot"
     if type(x) is not list:

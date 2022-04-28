@@ -16,6 +16,7 @@ from ima_vae.data.utils import (
     scatterplot_variables,
     build_moebius_transform,
     build_moebius_transform_torch,
+    rand_cos_sim,
 )
 
 
@@ -66,6 +67,7 @@ def gen_data(
     seed,
     nonlin,
     source="gaussian",
+    break_orthog=0.0,
     neg_slope=0.2,
     one_hot_labels=True,
     mobius=False,
@@ -95,7 +97,7 @@ def gen_data(
     )
 
     if mobius is True:
-        mixing, obs, sources, unmixing = gen_mobius(num_dim, obs, sources)
+        mixing, obs, sources, unmixing = gen_mobius(num_dim, obs, sources, break_orthog)
     else:
         if ar_flow is True:
             mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
@@ -206,7 +208,7 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
     return mixing, obs, sources, unmixing
 
 
-def gen_mobius(num_dim, obs, sources):
+def gen_mobius(num_dim, obs, sources, break_orthog):
     # Plot the sources
     if num_dim == 2:
         _, colors = cart2pol(obs[:, 0], obs[:, 1])
@@ -231,6 +233,14 @@ def gen_mobius(num_dim, obs, sources):
     )
     mixing_batched = jax.vmap(mixing)
     obs = mixing_batched(obs)
+
+    if num_dim == 2:
+        v1 = np.array([1, 0])
+        v2 = rand_cos_sim(v1, break_orthog)
+        mix = torch.Tensor([v1, v2]).numpy()
+        obs = mix @ obs.T
+        obs = obs.T
+
     mean = jnp.mean(obs, axis=0)
     std = jnp.std(obs, axis=0)
     obs -= mean
