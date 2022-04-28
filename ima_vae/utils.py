@@ -169,8 +169,9 @@ def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
                     grad_outputs=torch.ones(output_vars[:, i : i + 1].shape).to(
                         output_vars.device
                     ),
-                )[0]
+                )[0].detach()
             )
+            torch.cuda.empty_cache()
 
         jacobian = torch.stack(jacob, 1)
 

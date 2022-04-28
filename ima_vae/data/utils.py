@@ -130,6 +130,7 @@ def load_sprites(
         makedirs(sprites_dir)
 
     if not isfile(path):
+        print("no dSprites file, generating data...")
         obs, labels, sources = sprites_gen_wrapper(
             nobs=n_obs,
             nclasses=n_classes,
