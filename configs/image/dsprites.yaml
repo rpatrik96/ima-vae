@@ -8,12 +8,12 @@ model:
   prior: uniform
   latent_dim: 4
   n_layers: 3
-  lr: 0.001
+  lr: 5e-4
   prior_alpha: 1.0
   prior_beta: 1.0
   prior_mean: 0.0
   prior_var: 1.0
-  decoder_var: 1.0e-04
+  decoder_var: 1.0e-02
   fix_prior: true
   beta: 1.0
   diag_posterior: true
