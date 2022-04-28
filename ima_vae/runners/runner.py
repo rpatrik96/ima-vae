@@ -179,14 +179,21 @@ class IMAModule(pl.LightningModule):
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
         self._log_mcc(latent, sources, panel_name)
-        self._log_cima(latent, panel_name)
+
+        if (
+            (
+                reduced_freq_flag := (
+                    self.global_step > 2000
+                    and self.global_step % 2000 == 0
+                    or self.current_epoch == (self.trainer.max_epochs - 1)
+                )
+            )
+            and self.hparams.dataset == "image"
+        ) or self.hparams.dataset == "synth":
+            self._log_cima(latent, panel_name)
 
         # todo: calc at the end of fit
-        if (
-            self.global_step > 2000
-            and self.global_step % 2000 == 0
-            or self.current_epoch == (self.trainer.max_epochs - 1)
-        ):
+        if reduced_freq_flag is True:
             self._log_amari_dist(obs, sources, panel_name)
             # self._log_true_data_likelihood(obs, panel_name) #uses jax
             self._log_latents(latent, panel_name)
