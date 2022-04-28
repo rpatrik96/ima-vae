@@ -118,7 +118,11 @@ DatasetType = Literal["synth", "image"]
 def load_sprites(
     n_obs, n_classes, projective, affine, deltah, deltas, deltav, angle, shape
 ):
-    sprites_dir = join(dirname(abspath(__file__)), "sprites_data")
+    sprites_dir = join(
+        join(dirname(dirname(dirname(abspath(__file__)))), "spriteworld"),
+        "sprites_data",
+    )
+
     hsv_change = deltah != 0 or deltas != 0 or deltav != 0
 
     path = join(
