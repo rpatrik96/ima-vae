@@ -23,4 +23,4 @@ hydra-core~=1.1.1
 pre-commit
 omegaconf~=2.1.1
 dm-haiku # @ git+https://github.com/deepmind/dm-haiku@b2ae68ecbec47e75f12eb318c40b0b9cb61b5bce
-# tueplots
+tueplots
