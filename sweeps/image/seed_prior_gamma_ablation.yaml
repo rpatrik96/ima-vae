@@ -21,8 +21,6 @@ parameters:
     value: 5e-4
   model.prior:
     values: [ beta, gaussian, laplace ]
-  data.synth_source:
-    values: [ beta, uniform ]
   model.decoder_var:
     values: [ 1e-1, 1e-2, 1e-3, 1e-4,  1e-10 ]
   model.fix_prior:
