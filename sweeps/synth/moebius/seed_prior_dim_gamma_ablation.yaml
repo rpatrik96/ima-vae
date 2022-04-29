@@ -25,6 +25,8 @@ parameters:
     values: [ 2,3,5,10 ]
   model.decoder_var:
     values: [ 1e-3, 1e-4, 1e-5 ]
+  model.lr:
+    values: 1e-4
 
 
 
