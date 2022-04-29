@@ -256,6 +256,8 @@ class iVAE(nn.Module):
                         * self.prior_beta,
                     )
                 else:
+                    prior_mean = torch.abs(prior_mean) + 2
+                    prior_logvar = torch.abs(prior_logvar) + 2
                     log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
 
             elif self.prior.name == "laplace":
