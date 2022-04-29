@@ -165,11 +165,13 @@ class iVAE(nn.Module):
             log_qz_xu = self.posterior.log_pdf_full(latents, enc_mean, self.cholesky)
 
         if self.prior.name == "beta" or self.prior.name == "uniform":
+            eps = 1e-8
+            sigmoid_latents = torch.sigmoid(latents)
             determ = torch.log(
-                1.0 / (torch.sigmoid(latents) * (1.0 - torch.sigmoid(latents)))
+                1.0 / ((sigmoid_latents + eps) * (1.0 - sigmoid_latents + eps))
             ).sum(1)
             log_qz_xu += determ
-            latents = torch.sigmoid(latents)
+            latents = sigmoid_latents
 
         return enc_logvar, enc_mean, latents, log_qz_xu
 
