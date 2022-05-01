@@ -168,7 +168,7 @@ class iVAE(nn.Module):
             eps = 1e-8
             sigmoid_latents = torch.sigmoid(latents)
             determ = torch.log(
-                1.0 / ((sigmoid_latents + eps) * (1.0 - sigmoid_latents + eps))
+                1.0 / (sigmoid_latents * (1.0 - sigmoid_latents) + eps)
             ).sum(1)
             log_qz_xu += determ
             latents = sigmoid_latents
