@@ -166,12 +166,9 @@ class iVAE(nn.Module):
 
         if self.prior.name == "beta" or self.prior.name == "uniform":
             eps = 1e-8
-            sigmoid_latents = torch.sigmoid(latents)
-            determ = torch.log(
-                1.0 / (sigmoid_latents * (1.0 - sigmoid_latents) + eps)
-            ).sum(1)
+            latents = torch.sigmoid(latents)
+            determ = torch.log(1.0 / (latents * (1.0 - latents) + eps)).sum(1)
             log_qz_xu += determ
-            latents = sigmoid_latents
 
         return enc_logvar, enc_mean, latents, log_qz_xu
 
@@ -268,7 +265,9 @@ class iVAE(nn.Module):
                         latents, self.prior_mean, self.prior_var
                     )
                 else:
-                    log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
+                    log_pz_u = self.prior.log_pdf(
+                        latents, prior_mean, prior_logvar.exp()
+                    )
         return log_pz_u
 
     def _obs_log_likelihood(self, reconstructions, x):
