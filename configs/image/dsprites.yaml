@@ -9,8 +9,8 @@ model:
   latent_dim: 4
   n_layers: 3
   lr: 5e-4
-  prior_alpha: 1.0
-  prior_beta: 1.0
+  prior_alpha: 3.0
+  prior_beta: 11.0
   prior_mean: 0.0
   prior_var: 1.0
   decoder_var: 1.0e-02
