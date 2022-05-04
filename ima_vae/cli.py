@@ -1,5 +1,6 @@
 from pytorch_lightning.utilities.cli import LightningCLI
 from pytorch_lightning.loggers.wandb import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 from ima_vae.data.datamodules import IMADataModule
 from ima_vae.runners.runner import IMAModule
@@ -65,4 +66,13 @@ cli = MyLightningCLI(
     save_config_callback=None,
     run=True,
     parser_kwargs={"parse_as_dict": False},
+    trainer_defaults={
+        "callbacks": [
+            ModelCheckpoint(
+                save_top_k=1,
+                monitor="Metrics/val/mcc",
+                mode="max",
+            )
+        ]
+    },
 )
