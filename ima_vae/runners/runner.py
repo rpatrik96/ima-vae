@@ -97,6 +97,17 @@ class IMAModule(pl.LightningModule):
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
             self.logger.watch(self.model, log="all", log_freq=250)
 
+    def on_train_start(self) -> None:
+        if (
+            self.trainer.datamodule.mixing is not None
+            and self.trainer.datamodule.hparams.cos_theta != 0.0
+            and self.trainer.datamodule.linear_map is not None
+        ):
+            self.log(
+                "mixing_linear_map_cima",
+                cima_kl_diagonality(self.trainer.datamodule.linear_map),
+            )
+
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions
         return self.model(obs, labels)

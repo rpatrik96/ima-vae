@@ -69,7 +69,7 @@ def scatterplot_variables(x, title, colors="None", cmap="hsv"):
 import torch
 
 
-def build_moebius_transform_torch(alpha, A, a, b, epsilon=2):
+def build_moebius_transform_torch(alpha, A, a, b, epsilon=2, linear_map=None):
     device = "cuda" if torch.cuda.is_available() is True else "cpu"
     A = A.to(device)
     a = a.to(device)
@@ -80,10 +80,13 @@ def build_moebius_transform_torch(alpha, A, a, b, epsilon=2):
             frac = ((x - a) ** 2).sum()
             frac = frac ** (-1)
         else:
-            diff = (x - a).abs()
-
             frac = 1.0
-        return b + frac * alpha * (A @ (x - a).T).T
+
+        moebius = b + frac * alpha * (A @ (x - a).T).T
+
+        if linear_map is not None:
+            moebius = (linear_map @ moebius.T).T
+        return moebius
 
     B = torch.linalg.inv(A)
 
@@ -93,7 +96,12 @@ def build_moebius_transform_torch(alpha, A, a, b, epsilon=2):
             denom = ((numer) ** 2).sum()
         else:
             denom = 1.0
-        return a + 1.0 / denom * (B @ numer.T).T
+
+        inv_moebius = a + 1.0 / denom * (B @ numer.T).T
+        if linear_map is not None:
+            inv_moebius = (inv_moebius.T @ linear_map.inverse()).T
+
+        return inv_moebius
 
     return mixing_moebius_transform, unmixing_moebius_transform
 
@@ -114,8 +122,6 @@ def build_moebius_transform(alpha, A, a, b, epsilon=2):
             frac = jnp.sum((x - a) ** 2)
             frac = frac ** (-1)
         else:
-            diff = jnp.abs(x - a)
-
             frac = 1.0
         return b + frac * alpha * (A @ (x - a).T).T
 

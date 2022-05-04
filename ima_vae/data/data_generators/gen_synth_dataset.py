@@ -96,8 +96,11 @@ def gen_data(
         var,
     )
 
+    linear_map = None
     if mobius is True:
-        mixing, obs, sources, unmixing = gen_mobius(num_dim, obs, sources, cos_theta)
+        mixing, obs, sources, unmixing, linear_map = gen_mobius(
+            num_dim, obs, sources, cos_theta
+        )
     else:
         if ar_flow is True:
             mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
@@ -115,6 +118,7 @@ def gen_data(
         mixing,
         unmixing,
         [False] * num_dim,
+        linear_map,
     )
 
 
@@ -234,23 +238,27 @@ def gen_mobius(num_dim, obs, sources, break_orthog):
     mixing_batched = jax.vmap(mixing)
     obs = mixing_batched(obs)
 
-    if num_dim == 2:
-        v1 = np.array([1, 0])
-        v2 = rand_cos_sim(v1, break_orthog)
-        mix = torch.Tensor([v1, v2]).numpy()
-        obs = mix @ obs.T
-        obs = obs.T
-    else:
-        pass
+    linear_map = None
+    if break_orthog != 0.0:
+        if num_dim == 2:
+            v1 = np.array([1, 0])
+            v2 = rand_cos_sim(v1, break_orthog)
+            linear_map = torch.Tensor(np.stack([v1, v2]))
+            obs = linear_map.numpy() @ obs.T
+            obs = obs.T
+        else:
+            raise ValueError(
+                f"Tried to change orthogonality for {num_dim}D data, but this is only implemented for 2D!"
+            )
 
     mean = jnp.mean(obs, axis=0)
-    std = jnp.std(obs, axis=0)
     obs -= mean
     if num_dim == 2:
         scatterplot_variables(obs, "Observations (train)", colors=colors)
         plt.title("Observations", fontsize=19)
         plt.savefig("Observations_mobius", dpi=150, bbox_inches="tight")
         plt.close()
+
     obs = np.array(obs)
     sources = np.array(sources)
     print("Regenerating Moebius mixing with torch")
@@ -260,5 +268,7 @@ def gen_mobius(num_dim, obs, sources, break_orthog):
         torch.Tensor(a),
         torch.zeros(num_dim),
         epsilon=epsilon,
+        linear_map=linear_map,
     )
-    return mixing, obs, sources, unmixing
+
+    return mixing, obs, sources, unmixing, linear_map

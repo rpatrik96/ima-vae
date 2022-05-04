@@ -114,6 +114,7 @@ class IMADataModule(pl.LightningDataModule):
                 self.mixing,
                 self.unmixing,
                 self.discrete_list,
+                self.linear_map,
             ) = gen_synth_dataset.gen_data(
                 num_dim=self.hparams.latent_dim,
                 num_layer=self.hparams.mixing_layers,
