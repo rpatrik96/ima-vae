@@ -28,7 +28,7 @@ parameters:
   model.lr:
     value: 1e-4
   data.cos_theta:
-    values: [0.0, 0.1, 0.2, 0.5, 1.0]
+    values: [0.0, 0.2, 0.5, 1.0]
 
 
 
