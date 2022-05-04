@@ -103,22 +103,23 @@ class IMAModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        neg_elbo, z_est, rec_loss, kl_loss, latent_stat, _ = self.model.neg_elbo(
-            obs, labels
-        )
+        neg_elbo, z_est, rec_loss, kl_loss, _, _ = self.model.neg_elbo(obs, labels)
 
         panel_name = "Metrics/train"
-        self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
+        self._log_metrics(kl_loss, neg_elbo, rec_loss, None, panel_name)
         with torch.no_grad():
             self._log_mcc(z_est, sources, panel_name)
 
         return neg_elbo
 
-    def _log_metrics(self, kl_loss, neg_elbo, rec_loss, latent_stat, panel_name):
+    def _log_metrics(
+        self, kl_loss, neg_elbo, rec_loss, latent_stat=None, panel_name: str = "Metrics"
+    ):
         self.log(f"{panel_name}/neg_elbo", neg_elbo)
         self.log(f"{panel_name}/rec_loss", rec_loss)
         self.log(f"{panel_name}/kl_loss", kl_loss)
-        self.log(f"{panel_name}/latent_statistics", latent_stat)
+        if latent_stat is not None:
+            self.log(f"{panel_name}/latent_statistics", latent_stat)
 
     def _log_disentanglement_metrics(
         self,
@@ -153,17 +154,17 @@ class IMAModule(pl.LightningModule):
             ys_test.cpu(),
             continuous_factors,
         )
-        self.log(f"{panel_name}/sap", sap)
+        self.log(f"{panel_name}/sap", sap, on_epoch=True)
 
         # uses train-val-test splits of 0.8-0.1-0.1
         mig: dict = compute_mig_with_discrete_factors(
             predicted_latents.cpu(), sources.cpu(), discrete_list
         )
-        self.log(f"{panel_name}/mig", mig)
+        self.log(f"{panel_name}/mig", mig, on_epoch=True)
 
         if continuous_factors is False:
             dci: dict = _compute_dci(mus_train, ys_train, mus_test, ys_test)
-            self.log(f"{panel_name}/dci", dci)
+            self.log(f"{panel_name}/dci", dci, on_epoch=True)
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
@@ -180,33 +181,34 @@ class IMAModule(pl.LightningModule):
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
         self._log_mcc(latent, sources, panel_name)
 
+        # self.val_mcc.update(sources=sources,estimated_factors=latent)
+
         if (
-            (
-                reduced_freq_flag := (
-                    self.global_step > 2000
-                    and self.global_step % 2000 == 0
-                    or self.current_epoch == (self.trainer.max_epochs - 1)
-                )
-            )
-            and self.hparams.dataset == "image"
-        ) or self.hparams.dataset == "synth":
+            self.current_epoch % 20 == 0
+            or self.current_epoch == (self.trainer.max_epochs - 1)
+        ) is True:
             self._log_cima(latent, panel_name)
 
-        # todo: calc at the end of fit
-        if reduced_freq_flag is True:
             self._log_amari_dist(obs, sources, panel_name)
             # self._log_true_data_likelihood(obs, panel_name) #uses jax
             self._log_latents(latent, panel_name)
             self._log_reconstruction(obs, reconstruction, panel_name)
-            self._log_disentanglement_metrics(
-                sources,
-                latent,
-                self.trainer.datamodule.discrete_list,
-                panel_name,
-                continuous_factors=False in self.trainer.datamodule.discrete_list,
-            )
+
+            if self.hparams.dataset == "image":
+                self._log_disentanglement_metrics(
+                    sources,
+                    latent,
+                    self.trainer.datamodule.discrete_list,
+                    panel_name,
+                    continuous_factors=False in self.trainer.datamodule.discrete_list,
+                )
 
         return neg_elbo
+
+    # def on_validation_epoch_end(self) -> None:
+    #
+    #     panel_name = "Metrics/val"
+    #     self.log(f'{panel_name}/mcc_epoch', self.val_mcc.compute(), prog_bar=True)
 
     def _log_reconstruction(self, obs, rec, panel_name, max_img_num: int = 5):
         if (
@@ -251,7 +253,7 @@ class IMAModule(pl.LightningModule):
         )
         mcc = np.mean(np.abs(np.diag(mat)))
         if log is True:
-            self.log(f"{panel_name}/mcc", mcc, prog_bar=True)
+            self.log(f"{panel_name}/mcc", mcc, prog_bar=True, on_epoch=True)
 
         return mcc
 
@@ -261,27 +263,50 @@ class IMAModule(pl.LightningModule):
         cima = cima_kl_diagonality(unmix_jacobian)
 
         if log is True:
-            self.log(f"{panel_name}/cima", cima)
+            self.log(f"{panel_name}/cima", cima, on_epoch=True)
             self.log(
-                f"{panel_name}/conformal_contrast", conformal_contrast(unmix_jacobian)
+                f"{panel_name}/conformal_contrast",
+                conformal_contrast(unmix_jacobian),
+                on_epoch=True,
             )
-            self.log(f"{panel_name}/col_norm_var", col_norm_var(unmix_jacobian))
+            self.log(
+                f"{panel_name}/col_norm_var",
+                col_norm_var(unmix_jacobian),
+                on_epoch=True,
+            )
 
-            if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
-                self.logger.experiment.log(
-                    {f"{panel_name}/col_norms": col_norms(unmix_jacobian)}
+            column_norms = col_norms(unmix_jacobian)
+            for i, col_norm in enumerate(column_norms):
+                self.log(f"{panel_name}/col_norm_{i}", col_norm, on_epoch=True)
+
+            sample_col_norms = torch.stack([col_norms(j) for j in unmix_jacobians])
+            sample_col_norms_max = sample_col_norms.max(0)[0]
+            sample_col_norms_var = sample_col_norms.var(0)
+
+            for i, (col_max, col_norm) in enumerate(
+                zip(sample_col_norms_max, sample_col_norms_var)
+            ):
+                self.log(
+                    f"{panel_name}/sample_col_max_norms_{i}", col_max, on_epoch=True
+                )
+                self.log(
+                    f"{panel_name}/sample_col_norms_var_{i}", col_norm, on_epoch=True
                 )
 
-                # log max column norm for sample-wise jacobian
-
-                sample_col_norms = torch.stack([col_norms(j) for j in unmix_jacobians])
-
-                self.logger.experiment.log(
-                    {
-                        f"{panel_name}/sample_col_max_norms": sample_col_norms.max(0),
-                        f"{panel_name}/sample_col_norms_var": sample_col_norms.var(0),
-                    }
-                )
+            # if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
+            #     self.logger.experiment.log(
+            #         {f"{panel_name}/col_norms": column_norms}
+            #     )
+            #
+            #     # log max column norm for sample-wise jacobian
+            #
+            #
+            #     self.logger.experiment.log(
+            #         {
+            #             f"{panel_name}/sample_col_max_norms": sample_col_norms.max(0)[0],
+            #             f"{panel_name}/sample_col_norms_var": sample_col_norms.var(0),
+            #         }
+            #     )
 
         return cima
 
@@ -302,6 +327,7 @@ class IMAModule(pl.LightningModule):
                 self.log(
                     f"{panel_name}/true_data_likelihood",
                     true_data_likelihood.mean().tolist(),
+                    on_epoch=True,
                 )
         else:
             true_data_likelihood = None
@@ -323,7 +349,7 @@ class IMAModule(pl.LightningModule):
             ).permute(1, 0, 2)
             amari_dist = amari_distance(J_mix, J_unmix)
             if log is True:
-                self.log(f"{panel_name}/amari_dist", amari_dist)
+                self.log(f"{panel_name}/amari_dist", amari_dist, on_epoch=True)
         else:
             amari_dist = None
 
