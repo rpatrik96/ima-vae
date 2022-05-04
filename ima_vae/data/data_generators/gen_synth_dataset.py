@@ -67,7 +67,7 @@ def gen_data(
     seed,
     nonlin,
     source="gaussian",
-    break_orthog=0.0,
+    cos_theta=0.0,
     neg_slope=0.2,
     one_hot_labels=True,
     mobius=False,
@@ -97,7 +97,7 @@ def gen_data(
     )
 
     if mobius is True:
-        mixing, obs, sources, unmixing = gen_mobius(num_dim, obs, sources, break_orthog)
+        mixing, obs, sources, unmixing = gen_mobius(num_dim, obs, sources, cos_theta)
     else:
         if ar_flow is True:
             mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
@@ -240,6 +240,8 @@ def gen_mobius(num_dim, obs, sources, break_orthog):
         mix = torch.Tensor([v1, v2]).numpy()
         obs = mix @ obs.T
         obs = obs.T
+    else:
+        pass
 
     mean = jnp.mean(obs, axis=0)
     std = jnp.std(obs, axis=0)
