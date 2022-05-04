@@ -74,6 +74,7 @@ def build_moebius_transform_torch(alpha, A, a, b, epsilon=2, linear_map=None):
     A = A.to(device)
     a = a.to(device)
     b = b.to(device)
+    linear_map = linear_map.to(device)
 
     def mixing_moebius_transform(x):
         if epsilon == 2:
