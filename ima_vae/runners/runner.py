@@ -126,11 +126,16 @@ class IMAModule(pl.LightningModule):
     def _log_metrics(
         self, kl_loss, neg_elbo, rec_loss, latent_stat=None, panel_name: str = "Metrics"
     ):
-        self.log(f"{panel_name}/neg_elbo", neg_elbo)
-        self.log(f"{panel_name}/rec_loss", rec_loss)
-        self.log(f"{panel_name}/kl_loss", kl_loss)
+        self.log(f"{panel_name}/neg_elbo", neg_elbo, on_epoch=True, on_step=False)
+        self.log(f"{panel_name}/rec_loss", rec_loss, on_epoch=True, on_step=False)
+        self.log(f"{panel_name}/kl_loss", kl_loss, on_epoch=True, on_step=False)
         if latent_stat is not None:
-            self.log(f"{panel_name}/latent_statistics", latent_stat)
+            self.log(
+                f"{panel_name}/latent_statistics",
+                latent_stat,
+                on_epoch=True,
+                on_step=False,
+            )
 
     def _log_disentanglement_metrics(
         self,
@@ -165,17 +170,17 @@ class IMAModule(pl.LightningModule):
             ys_test.cpu(),
             continuous_factors,
         )
-        self.log(f"{panel_name}/sap", sap, on_epoch=True)
+        self.log(f"{panel_name}/sap", sap, on_epoch=True, on_step=False)
 
         # uses train-val-test splits of 0.8-0.1-0.1
         mig: dict = compute_mig_with_discrete_factors(
             predicted_latents.cpu(), sources.cpu(), discrete_list
         )
-        self.log(f"{panel_name}/mig", mig, on_epoch=True)
+        self.log(f"{panel_name}/mig", mig, on_epoch=True, on_step=False)
 
         if continuous_factors is False:
             dci: dict = _compute_dci(mus_train, ys_train, mus_test, ys_test)
-            self.log(f"{panel_name}/dci", dci, on_epoch=True)
+            self.log(f"{panel_name}/dci", dci, on_epoch=True, on_step=False)
 
     def validation_step(self, batch, batch_idx):
         obs, labels, sources = batch
@@ -297,7 +302,9 @@ class IMAModule(pl.LightningModule):
         )
         mcc = np.mean(np.abs(np.diag(mat)))
         if log is True:
-            self.log(f"{panel_name}/mcc", mcc, prog_bar=True, on_epoch=True)
+            self.log(
+                f"{panel_name}/mcc", mcc, prog_bar=True, on_epoch=True, on_step=False
+            )
 
         return mcc
 
@@ -307,21 +314,25 @@ class IMAModule(pl.LightningModule):
         cima = cima_kl_diagonality(unmix_jacobian)
 
         if log is True:
-            self.log(f"{panel_name}/cima", cima, on_epoch=True)
+            self.log(f"{panel_name}/cima", cima, on_epoch=True, on_step=False)
             self.log(
                 f"{panel_name}/conformal_contrast",
                 conformal_contrast(unmix_jacobian),
                 on_epoch=True,
+                on_step=False,
             )
             self.log(
                 f"{panel_name}/col_norm_var",
                 col_norm_var(unmix_jacobian),
                 on_epoch=True,
+                on_step=False,
             )
 
             column_norms = col_norms(unmix_jacobian)
             for i, col_norm in enumerate(column_norms):
-                self.log(f"{panel_name}/col_norm_{i}", col_norm, on_epoch=True)
+                self.log(
+                    f"{panel_name}/col_norm_{i}", col_norm, on_epoch=True, on_step=False
+                )
 
             sample_col_norms = torch.stack([col_norms(j) for j in unmix_jacobians])
             sample_col_norms_max = sample_col_norms.max(0)[0]
@@ -331,10 +342,17 @@ class IMAModule(pl.LightningModule):
                 zip(sample_col_norms_max, sample_col_norms_var)
             ):
                 self.log(
-                    f"{panel_name}/sample_col_max_norms_{i}", col_max, on_epoch=True
+                    f"{panel_name}/sample_col_max_norms_{i}",
+                    col_max,
+                    on_epoch=True,
+                    on_step=False,
+                    reduce_fx="max",
                 )
                 self.log(
-                    f"{panel_name}/sample_col_norms_var_{i}", col_norm, on_epoch=True
+                    f"{panel_name}/sample_col_norms_var_{i}",
+                    col_norm,
+                    on_epoch=True,
+                    on_step=False,
                 )
 
         return cima
@@ -357,6 +375,7 @@ class IMAModule(pl.LightningModule):
                     f"{panel_name}/true_data_likelihood",
                     true_data_likelihood.mean().tolist(),
                     on_epoch=True,
+                    on_step=False,
                 )
         else:
             true_data_likelihood = None
@@ -378,7 +397,9 @@ class IMAModule(pl.LightningModule):
             ).permute(1, 0, 2)
             amari_dist = amari_distance(J_mix, J_unmix)
             if log is True:
-                self.log(f"{panel_name}/amari_dist", amari_dist, on_epoch=True)
+                self.log(
+                    f"{panel_name}/amari_dist", amari_dist, on_epoch=True, on_step=False
+                )
         else:
             amari_dist = None
 
