@@ -205,6 +205,39 @@ class IMAModule(pl.LightningModule):
 
         return neg_elbo
 
+    def test_step(self, batch, batch_idx):
+        obs, labels, sources = batch
+        (
+            neg_elbo,
+            latent,
+            rec_loss,
+            kl_loss,
+            latent_stat,
+            reconstruction,
+        ) = self.model.neg_elbo(obs, labels, reconstruction=True)
+
+        panel_name = "Metrics/test"
+        self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
+        self._log_mcc(latent, sources, panel_name)
+
+        # self.val_mcc.update(sources=sources,estimated_factors=latent)
+
+        self._log_cima(latent, panel_name)
+
+        self._log_amari_dist(obs, sources, panel_name)
+        # self._log_true_data_likelihood(obs, panel_name) #uses jax
+        self._log_latents(latent, panel_name)
+        self._log_reconstruction(obs, reconstruction, panel_name)
+
+        if self.hparams.dataset == "image":
+            self._log_disentanglement_metrics(
+                sources,
+                latent,
+                self.trainer.datamodule.discrete_list,
+                panel_name,
+                continuous_factors=False in self.trainer.datamodule.discrete_list,
+            )
+
     # def on_validation_epoch_end(self) -> None:
     #
     #     panel_name = "Metrics/val"
