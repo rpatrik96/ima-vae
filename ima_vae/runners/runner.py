@@ -326,21 +326,6 @@ class IMAModule(pl.LightningModule):
                     f"{panel_name}/sample_col_norms_var_{i}", col_norm, on_epoch=True
                 )
 
-            # if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
-            #     self.logger.experiment.log(
-            #         {f"{panel_name}/col_norms": column_norms}
-            #     )
-            #
-            #     # log max column norm for sample-wise jacobian
-            #
-            #
-            #     self.logger.experiment.log(
-            #         {
-            #             f"{panel_name}/sample_col_max_norms": sample_col_norms.max(0)[0],
-            #             f"{panel_name}/sample_col_norms_var": sample_col_norms.var(0),
-            #         }
-            #     )
-
         return cima
 
     def _log_true_data_likelihood(self, obs, panel_name, log=True):
