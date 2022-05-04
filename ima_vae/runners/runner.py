@@ -100,7 +100,6 @@ class IMAModule(pl.LightningModule):
     def on_train_start(self) -> None:
         if (
             self.trainer.datamodule.mixing is not None
-            and self.trainer.datamodule.hparams.cos_theta != 0.0
             and self.trainer.datamodule.linear_map is not None
         ):
             self.log(
