@@ -102,10 +102,8 @@ class IMAModule(pl.LightningModule):
             self.trainer.datamodule.mixing is not None
             and self.trainer.datamodule.linear_map is not None
         ):
-            self.log(
-                "mixing_linear_map_cima",
-                cima_kl_diagonality(self.trainer.datamodule.linear_map),
-            )
+                if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
+                    self.logger.experiment.summary["mixing_linear_map_cima"] =  cima_kl_diagonality(self.trainer.datamodule.linear_map)
 
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions
