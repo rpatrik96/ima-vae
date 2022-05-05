@@ -16,13 +16,15 @@ metric:
   name: Metrics/val/mcc
 parameters:
   seed_everything:
-    values: [ 42,64, 982, 5748, 23567 ]
+    values: [ 42, 982, 5748 ]
+  trainer.max_epochs:
+    value: 500
   model.lr:
     value: 5e-4
   model.prior:
-    values: [ beta, gaussian, laplace ]
+    value: beta
   model.decoder_var:
-    values: [ 1e-1, 1e-2, 1e-3, 1e-4,  1e-10 ]
+    values: [ 1e-1, 1e-2 ]
   model.fix_prior:
     value: false
 
