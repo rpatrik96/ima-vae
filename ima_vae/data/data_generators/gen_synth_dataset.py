@@ -77,8 +77,8 @@ def gen_data(
     var=np.random.uniform(0.01, 3),
     ar_flow=False,
 ):
-    np.random.seed(2 * seed)
-    torch.manual_seed(2 * seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     if nonlin == "none":
         nlayers = 1
     else:

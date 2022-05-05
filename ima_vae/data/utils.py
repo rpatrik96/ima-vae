@@ -144,7 +144,7 @@ DatasetType = Literal["synth", "image"]
 
 
 def load_sprites(
-    n_obs, n_classes, projective, affine, deltah, deltas, deltav, angle, shape
+    n_obs, n_classes, projective, affine, deltah, deltas, deltav, angle, shape, seed
 ):
     sprites_dir = join(
         join(dirname(dirname(dirname(abspath(__file__)))), "spriteworld"),
@@ -175,6 +175,7 @@ def load_sprites(
             shape=shape,
             lower=2,
             upper=15,
+            seed=seed,
         )
 
     else:

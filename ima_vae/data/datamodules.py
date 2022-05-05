@@ -101,6 +101,7 @@ class IMADataModule(pl.LightningDataModule):
                 self.hparams.deltav,
                 self.hparams.angle,
                 self.hparams.shape,
+                self.hparams.seed,
             )
         elif self.hparams.dataset == "synth":
             transform = None
