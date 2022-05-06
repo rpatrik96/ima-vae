@@ -24,7 +24,7 @@ parameters:
   model.latent_dim:
     values: [ 2,3,5,10 ]
   model.decoder_var:
-    value: [1e-1, 1e-3, 1e-4, 1e-5, 1e-10] #todo: should be set
+    value: 1e-5
   model.lr:
     value: 1e-4
 
