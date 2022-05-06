@@ -238,7 +238,7 @@ def gen_mobius(num_dim, obs, sources, break_orthog):
     mixing_batched = jax.vmap(mixing)
     obs = mixing_batched(obs)
 
-    linear_map = torch.eye(2)
+    linear_map = torch.eye(num_dim)
     if break_orthog != 0.0:
         if num_dim == 2:
             v1 = np.array([1, 0])
