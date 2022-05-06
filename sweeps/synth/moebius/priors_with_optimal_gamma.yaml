@@ -18,7 +18,7 @@ parameters:
   seed_everything:
     values: [ 42,64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645]
   model.prior:
-  values: [ uniform, laplace, gaussian ]
+    values: [ uniform, laplace, gaussian ]
   data.synth_source:
     value: uniform
   model.latent_dim:
