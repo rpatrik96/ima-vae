@@ -16,7 +16,7 @@ metric:
   name: Metrics/val/mcc
 parameters:
   seed_everything:
-    values: [ 42,64, 982, 5748, 23567
+    values: [ 42,64, 982, 5748, 23567]
   model.prior:
     values: [ uniform, laplace, gaussian ]
   data.synth_source:
