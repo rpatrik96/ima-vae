@@ -4,10 +4,28 @@ from os.path import isfile
 from typing import Literal
 
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 
 from spriteworld.gen_sprites_dataset import sprites_gen_wrapper
 from spriteworld.utils import sprites_filename
+
+from ima_vae.metrics.cima import cima_kl_diagonality
+
+
+def l2_normalize(Amat, axis=0):
+  l2norm = np.sqrt(np.sum(Amat * Amat, axis))
+  Amat = Amat / l2norm
+  return Amat
+
+
+def get_lin_mix(obs_dim):
+  while rank!=obs_dim:
+    mat = np.random.rand(obs_dim,obs_dim)
+    norm_mat = l2_normalize(mat, axis=0)
+    rank = np.linalg.matrix_rank(norm_mat, tol=1e-6).item()
+  c_ima = cima_kl_diagonality(torch.from_numpy(norm_mat))
+  return norm_mat, c_ima
 
 
 def rand_cos_sim(v, costheta):
