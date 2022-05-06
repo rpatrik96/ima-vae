@@ -15,25 +15,18 @@ metric:
   goal: maximize
   name: Metrics/val/mcc
 parameters:
+  seed_everything:
+    values: [ 42, 64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645 ]
+  trainer.max_epochs:
+    value: 600
+  model.lr:
+    value: 5e-4
   model.prior:
     value: beta
-  data.synth_source:
-    value: uniform
   model.decoder_var:
-    values:
-      - 1e-4
-      - 1e-5
-      - 1e-6
-      - 1e-7
-  model.lr:
-    values:
-      - 2e-4
-      - 1e-3
-      - 2e-3
-      - 5e-3
-  data.affine:
-    value: true
-
+    values: [1e2, 1e1, 1e0, 1e-1, 1e-2, 1e-4]
+  model.fix_prior:
+    value: false
 
 
 

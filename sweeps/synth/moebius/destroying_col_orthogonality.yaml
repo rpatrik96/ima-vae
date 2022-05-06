@@ -15,37 +15,20 @@ metric:
   goal: maximize
   name: Metrics/val/mcc
 parameters:
+  seed_everything:
+    values: [ 42,64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645 ]
   model.prior:
-    value: laplace
+    value: gaussian
   data.synth_source:
     value: uniform
   model.latent_dim:
-    values:
-      - 2
-      - 3
-      - 5
-      - 10
-  model.prior_var:
-    values:
-      - 0.01
-      - 0.1
-      - 0.5
-      - 1
-      - 3
+    value: 3
   model.decoder_var:
-    values:
-      - 1e-4
-      - 1e-5
-      - 1e-6
-      - 1e-7
+    value: 1e-10
   model.lr:
-    values:
-      - 2e-4
-      - 1e-3
-      - 2e-3
-      - 5e-3
-
-
+    value: 1e-4
+  data.cos_theta:
+    values: [ 0.999, 0.75, 0.5, 0.0]
 
 
 
