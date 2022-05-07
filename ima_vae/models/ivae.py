@@ -204,10 +204,6 @@ class iVAE(nn.Module):
 
         log_pz_u, mean, var = self._prior_log_likelihood(latents, u)
 
-        from pdb import set_trace
-
-        set_trace()
-
         if self.prior.name == "gauss":
 
             kl_loss = -torch.stack(
