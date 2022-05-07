@@ -215,7 +215,7 @@ class iVAE(nn.Module):
                 kl_loss = (
                     -0.5
                     * (
-                        1.0 / var * (encoding_logvar.exp() + encoding_mean**2)
+                        (encoding_logvar.exp() + encoding_mean**2) / var
                         + torch.log(var)
                         - encoding_logvar
                     )
