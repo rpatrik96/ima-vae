@@ -201,9 +201,27 @@ class iVAE(nn.Module):
         log_px_z = self._obs_log_likelihood(reconstructions, x)
         # log_px_z = ((x_recon-x.to(device))**2).flatten(1).sum(1).mul(-1)
 
-        log_pz_u = self._prior_log_likelihood(latents, u)
+        log_pz_u, mean, var = self._prior_log_likelihood(latents, u)
 
-        kl_loss = (log_pz_u - log_qz_xu).mean()
+        if self.prior.name == "gauss":
+            from torch.distributions import kl_divergence, MultivariateNormal
+
+            kl_loss = -torch.stack(
+                [
+                    torch.distributions.kl_divergence(
+                        MultivariateNormal(
+                            q_mean,
+                            torch.diag(q_var),
+                        ),
+                        MultivariateNormal(p_mean, torch.diag(p_var)),
+                    )
+                    for q_mean, q_var, p_mean, p_var in zip(
+                        encoding_mean, encoding_logvar.exp(), mean, var
+                    )
+                ]
+            ).mean()
+        else:
+            kl_loss = (log_pz_u - log_qz_xu).mean()
         rec_loss = log_px_z.mean()
 
         if log is True:
@@ -223,7 +241,8 @@ class iVAE(nn.Module):
     def _prior_log_likelihood(self, latents, u):
         # all prior parameters fixed if uniform
         if self.prior.name == "uniform":
-            log_pz_u = self.prior.log_pdf(latents, self.prior_mean, self.prior_var)
+            mean, var = self.prior_mean, self.prior_var
+
         else:
             prior_params = self.conditioner(u)
 
@@ -233,42 +252,38 @@ class iVAE(nn.Module):
 
             if self.prior.name == "gauss":
                 if self.fix_prior is True:
-                    log_pz_u = self.prior.log_pdf(
-                        latents, self.prior_mean, prior_params.exp()
-                    )
+                    mean, var = self.prior_mean, prior_params.exp()
+
                 else:
-                    log_pz_u = self.prior.log_pdf(
-                        latents, prior_mean, prior_logvar.exp()
-                    )
+                    mean, var = prior_mean, prior_logvar.exp()
 
             elif self.prior.name == "beta":
                 if self.fix_prior is True:
-                    log_pz_u = self.prior.log_pdf(
-                        latents,
+                    mean = (
                         torch.ones(
                             (latents.shape[0], self.latent_dim), device=latents.device
                         )
-                        * self.prior_alpha,
-                        torch.ones(
-                            (latents.shape[0], self.latent_dim), device=latents.device
-                        )
-                        * self.prior_beta,
+                        * self.prior_alpha
                     )
+                    var = (
+                        torch.ones(
+                            (latents.shape[0], self.latent_dim), device=latents.device
+                        )
+                        * self.prior_beta
+                    )
+
                 else:
-                    prior_mean = torch.abs(prior_mean) + 2
-                    prior_logvar = torch.abs(prior_logvar) + 2
-                    log_pz_u = self.prior.log_pdf(latents, prior_mean, prior_logvar)
+                    mean = torch.abs(prior_mean) + 2
+                    var = torch.abs(prior_logvar) + 2
 
             elif self.prior.name == "laplace":
                 if self.fix_prior is True:
-                    log_pz_u = self.prior.log_pdf(
-                        latents, self.prior_mean, self.prior_var
-                    )
+                    mean, var = self.prior_mean, self.prior_var
                 else:
-                    log_pz_u = self.prior.log_pdf(
-                        latents, prior_mean, prior_logvar.exp()
-                    )
-        return log_pz_u
+                    mean, var = prior_mean, prior_logvar.exp()
+
+        log_pz_u = self.prior.log_pdf(latents, mean, var)
+        return log_pz_u, mean, var
 
     def _obs_log_likelihood(self, reconstructions, x):
         log_px_z = self.likelihood.log_pdf(
