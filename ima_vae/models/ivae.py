@@ -210,6 +210,8 @@ class iVAE(nn.Module):
         if self.prior.name == "gauss" and self.posterior.diag is True:
 
             if self.fix_prior is True:
+                # source: https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Kullback%E2%80%93Leibler_divergence
+                # using that prior mean is 0
                 kl_loss = (
                     -0.5
                     * (
