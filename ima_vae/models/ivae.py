@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.distributions import MultivariateNormal
 
 from ima_vae.data.utils import DatasetType
 from ima_vae.distributions import Normal, Uniform, Beta, Laplace
@@ -204,7 +205,6 @@ class iVAE(nn.Module):
         log_pz_u, mean, var = self._prior_log_likelihood(latents, u)
 
         if self.prior.name == "gauss":
-            from torch.distributions import kl_divergence, MultivariateNormal
 
             kl_loss = -torch.stack(
                 [
