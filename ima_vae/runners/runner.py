@@ -30,6 +30,7 @@ class IMAModule(pl.LightningModule):
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
         activation: ActivationType = "lrelu",
         latent_dim: int = 2,
+        hidden_latent_factor: int = 10,
         n_segments: int = 1,
         n_layers: int = 2,
         lr: float = 1e-3,
@@ -50,6 +51,7 @@ class IMAModule(pl.LightningModule):
     ):
         """
 
+        :param hidden_latent_factor:
         :param diag_posterior: choose a diagonal posterior
         :param beta: beta of the beta-VAE
         :param fix_prior: fix (and not learn) prior distribution
@@ -82,16 +84,17 @@ class IMAModule(pl.LightningModule):
             n_layers=n_layers,
             activation=activation,
             device=device,
+            hidden_latent_factor=hidden_latent_factor,
             prior=prior,
+            diag_posterior=diag_posterior,
             dataset=self.hparams.dataset,
+            fix_prior=fix_prior,
+            beta=beta,
             prior_alpha=prior_alpha,
             prior_beta=prior_beta,
             prior_mean=prior_mean,
             prior_var=prior_var,
             decoder_var=decoder_var,
-            fix_prior=fix_prior,
-            beta=beta,
-            diag_posterior=diag_posterior,
         )
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:

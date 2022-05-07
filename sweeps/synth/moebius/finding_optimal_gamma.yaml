@@ -29,6 +29,8 @@ parameters:
     value: 1e-4
   model.n_layers:
     values: [3, 5, 7]
+  model.hidden_latent_factor:
+    values: [10, 15, 20]
 
 
 

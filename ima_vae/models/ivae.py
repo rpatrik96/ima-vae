@@ -18,6 +18,7 @@ class iVAE(nn.Module):
         n_layers: int,
         activation,
         device,
+        hidden_latent_factor: int = 10,
         prior: PriorType = "uniform",
         likelihood=None,
         posterior=None,
@@ -43,6 +44,7 @@ class iVAE(nn.Module):
         self.n_classes = n_classes
         self.fix_prior = fix_prior
         self.beta = beta
+        self.hidden_dim = self.latent_dim * hidden_latent_factor
 
         self._setup_distributions(
             likelihood,
@@ -69,6 +71,7 @@ class iVAE(nn.Module):
             self.encoder, self.decoder = nets.get_synth_models(
                 self.data_dim,
                 self.latent_dim,
+                self.hidden_dim,
                 self.post_dim,
                 n_layers,
                 self.activation,
