@@ -207,22 +207,37 @@ class iVAE(nn.Module):
 
         log_pz_u, mean, var = self._prior_log_likelihood(latents, u)
 
-        if self.prior.name == "gauss":
+        if self.prior.name == "gauss" and self.posterior.diag is True:
 
-            kl_loss = -torch.stack(
-                [
-                    torch.distributions.kl_divergence(
-                        MultivariateNormal(
-                            q_mean,
-                            torch.diag(q_var),
-                        ),
-                        MultivariateNormal(p_mean, torch.diag(p_var)),
+            if self.fix_prior is True:
+                kl_loss = (
+                    -0.5
+                    * (
+                        1.0 / var * (encoding_logvar.exp() + encoding_mean**2)
+                        + torch.log(var)
+                        - encoding_logvar
                     )
-                    for q_mean, q_var, p_mean, p_var in zip(
-                        encoding_mean, encoding_logvar.exp(), mean, var
-                    )
-                ]
-            ).mean()
+                    .mean(0)
+                    .sum()
+                    + self.latent_dim / 2
+                )
+            else:
+
+                kl_loss = -torch.stack(
+                    [
+                        torch.distributions.kl_divergence(
+                            MultivariateNormal(
+                                q_mean,
+                                torch.diag(q_var),
+                            ),
+                            MultivariateNormal(p_mean, torch.diag(p_var)),
+                        )
+                        for q_mean, q_var, p_mean, p_var in zip(
+                            encoding_mean, encoding_logvar.exp(), mean, var
+                        )
+                    ]
+                ).mean()
+                print(kl_loss)
         else:
             kl_loss = (log_pz_u - log_qz_xu).mean()
         rec_loss = log_px_z.mean()
