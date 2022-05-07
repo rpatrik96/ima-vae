@@ -81,7 +81,7 @@ model:
   beta: 1.0
   diag_posterior: true
 data:
-  batch_size: 64
+  batch_size: 256
   orthog: false
   mobius: true
   ar_flow: false
