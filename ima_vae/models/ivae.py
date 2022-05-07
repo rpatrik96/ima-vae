@@ -62,7 +62,7 @@ class iVAE(nn.Module):
 
     def _setup_nets(self, dataset, device, n_layers, slope, decoder_var=0.000001):
         # decoder params
-        self.decoder_var = decoder_var * torch.ones(1).to(device)
+        self.decoder_var = decoder_var * torch.ones(1, dtype=torch.float64).to(device)
 
         if dataset == "synth":
             self.encoder, self.decoder = nets.get_synth_models(
