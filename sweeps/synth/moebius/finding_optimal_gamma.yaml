@@ -22,7 +22,7 @@ parameters:
   data.synth_source:
     value: uniform
   model.latent_dim:
-    value: 5
+    value: 3
   model.decoder_var:
     values: [1e-1, 1e-3, 1e-4, 1e-5, 1e-10]
   model.lr:
