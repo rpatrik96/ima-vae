@@ -224,8 +224,7 @@ class iVAE(nn.Module):
                     + self.latent_dim / 2
                 )
             else:
-
-                kl_loss = -torch.stack(
+                kl_loss = -torch.cat(
                     [
                         torch.distributions.kl_divergence(
                             MultivariateNormal(
@@ -233,13 +232,12 @@ class iVAE(nn.Module):
                                 torch.diag(q_var),
                             ),
                             MultivariateNormal(p_mean, torch.diag(p_var)),
-                        )
+                        ).view(1)
                         for q_mean, q_var, p_mean, p_var in zip(
                             encoding_mean, encoding_logvar.exp(), mean, var
                         )
                     ]
                 ).mean()
-                print(kl_loss)
         else:
             kl_loss = (log_pz_u - log_qz_xu).mean()
         rec_loss = log_px_z.mean()
