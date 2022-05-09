@@ -18,7 +18,7 @@ model:
   beta: 1.0
   diag_posterior: true
 data:
-  batch_size: 64
+  batch_size: 512
   orthog: false
   mobius: true
   linear: false
