@@ -224,6 +224,12 @@ class iVAE(nn.Module):
                     + self.latent_dim / 2
                 )
             else:
+
+                if mean.shape != latents.shape:
+                    mean = mean * torch.ones_like(latents)
+                if var.shape != latents.shape:
+                    var = var * torch.ones_like(latents)
+
                 kl_loss = -torch.cat(
                     [
                         torch.distributions.kl_divergence(
@@ -299,11 +305,6 @@ class iVAE(nn.Module):
                     mean, var = self.prior_mean, self.prior_var
                 else:
                     mean, var = prior_mean, prior_logvar.exp()
-
-        if mean.shape != latents.shape:
-            mean = mean * torch.ones_like(latents)
-        if var.shape != latents.shape:
-            var = var * torch.ones_like(latents)
 
         log_pz_u = self.prior.log_pdf(latents, mean, var)
         return log_pz_u, mean, var
