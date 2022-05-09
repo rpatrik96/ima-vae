@@ -201,11 +201,11 @@ class IMAModule(pl.LightningModule):
 
         # self.val_mcc.update(sources=sources,estimated_factors=latent)
 
+        self._log_cima(latent, panel_name)
         if (
             self.current_epoch % 20 == 0
             or self.current_epoch == (self.trainer.max_epochs - 1)
         ) is True:
-            self._log_cima(latent, panel_name)
 
             self._log_amari_dist(obs, sources, panel_name)
             # self._log_true_data_likelihood(obs, panel_name) #uses jax
