@@ -15,6 +15,8 @@ metric:
   goal: maximize
   name: Metrics/val/mcc
 parameters:
+  model.decoder_var:
+    values: [1e-1, 1e-3, 1e-4, 1e-5, 1e-6,1e-7,1e-8, 1e-10]
   seed_everything:
     values: [ 42,64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645, 54, 8864, 5454, 697, 2 , 7, 69, 1996, 2022, 874]
   trainer.gpus:
@@ -27,8 +29,6 @@ parameters:
     value: 64
   model.latent_dim:
     value: 3
-  model.decoder_var:
-    values: [1e-1, 1e-3, 1e-4, 1e-5, 1e-6,1e-7,1e-8, 1e-10]
   model.lr:
     value: 1e-3
   model.hidden_latent_factor:
