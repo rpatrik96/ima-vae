@@ -1,6 +1,6 @@
 from pytorch_lightning.utilities.cli import LightningCLI
 from pytorch_lightning.loggers.wandb import WandbLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 from ima_vae.data.datamodules import IMADataModule
 from ima_vae.runners.runner import IMAModule
@@ -72,7 +72,8 @@ cli = MyLightningCLI(
                 save_top_k=1,
                 monitor="Metrics/val/mcc",
                 mode="max",
-            )
+            ),
+            EarlyStopping(monitor="Metrics/val/neg_elbo", mode="max", patience=4),
         ]
     },
 )
