@@ -7,7 +7,7 @@ model:
   log_reconstruction: false
   prior: uniform
   latent_dim: 2
-  n_layers: 3
+  n_layers: 2
   lr: 0.001
   prior_alpha: 3.0
   prior_beta: 11.0
@@ -18,7 +18,7 @@ model:
   beta: 1.0
   diag_posterior: true
 data:
-  batch_size: 512
+  batch_size: 64
   orthog: false
   mobius: true
   linear: false
