@@ -17,6 +17,7 @@ from ima_vae.data.utils import (
     build_moebius_transform,
     build_moebius_transform_torch,
     rand_cos_sim,
+    get_lin_mix,
 )
 
 
@@ -75,7 +76,7 @@ def gen_data(
     nonlin,
     seed=1,
     source="gaussian",
-    cos_theta=0.0,
+    break_orthog=0.0,
     neg_slope=0.2,
     one_hot_labels=True,
     mobius=False,
@@ -108,7 +109,7 @@ def gen_data(
     linear_map = None
     if mobius is True:
         mixing, obs, sources, unmixing, linear_map = gen_mobius(
-            num_dim, obs, sources, cos_theta
+            num_dim, obs, sources, break_orthog
         )
     elif ar_flow is True:
         mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
@@ -225,7 +226,7 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
     return mixing, obs, sources, unmixing
 
 
-def gen_mobius(num_dim, obs, sources, break_orthog):
+def gen_mobius(num_dim, obs, sources, break_orthog, unit_det=True, col_norm=False):
     # Plot the sources
     if num_dim == 2:
         _, colors = cart2pol(obs[:, 0], obs[:, 1])
@@ -257,12 +258,12 @@ def gen_mobius(num_dim, obs, sources, break_orthog):
             v1 = np.array([1, 0])
             v2 = rand_cos_sim(v1, break_orthog)
             linear_map = torch.Tensor(np.stack([v1, v2]))
-            obs = linear_map.numpy() @ obs.T
-            obs = obs.T
         else:
-            raise ValueError(
-                f"Tried to change orthogonality for {num_dim}D data, but this is only implemented for 2D!"
-            )
+            linear_map = get_lin_mix(num_dim, unit_det=unit_det, col_norm=col_norm)
+
+        print(linear_map)
+        obs = linear_map.numpy() @ obs.T
+        obs = obs.T
 
     mean = jnp.mean(obs, axis=0)
     obs -= mean

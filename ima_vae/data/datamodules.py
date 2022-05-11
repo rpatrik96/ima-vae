@@ -21,7 +21,7 @@ class IMADataModule(pl.LightningDataModule):
         linear: bool = False,
         latent_dim: int = 2,
         n_segments: int = 1,
-        cos_theta: float = 0.0,
+        break_orthog: float = 0.0,
         mixing_layers: int = 1,
         n_obs: int = int(60e3),
         seed: int = 1,
@@ -47,7 +47,8 @@ class IMADataModule(pl.LightningDataModule):
     ):
         """
 
-        :param mlp:
+        :param mlp: use MLP mixing
+        :param break_orthog: for 2D, it is cos theta, for higher D, it is a flag to break col-orthogonality in Mobius
         :param angle: angle flag for dSprites
         :param shape: shape flag for dSprites
         :param deltah: Disturbance in the Hue channel
@@ -126,7 +127,7 @@ class IMADataModule(pl.LightningDataModule):
                 orthog=self.hparams.orthog,
                 nonlin="none" if self.hparams.linear is True else "smooth_lrelu",
                 source=self.hparams.synth_source,
-                cos_theta=self.hparams.cos_theta,
+                break_orthog=self.hparams.break_orthog,
                 mobius=self.hparams.mobius,
                 alpha_shape=self.hparams.prior_alpha,
                 beta_shape=self.hparams.prior_beta,
@@ -134,6 +135,7 @@ class IMADataModule(pl.LightningDataModule):
                 var=self.hparams.prior_var,
                 ar_flow=self.hparams.ar_flow,
                 mlp=self.hparams.mlp,
+                seed=self.hparams.seed,
             )
         else:
             raise ValueError

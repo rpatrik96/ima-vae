@@ -38,8 +38,8 @@ def get_lin_mix(obs_dim, unit_det=False, col_norm=False):
             rank = np.linalg.matrix_rank(norm_mat, tol=1e-6).item()
         except:
             rank = -1
-    c_ima = cima_kl_diagonality(torch.from_numpy(norm_mat))
-    return norm_mat, c_ima
+
+    return torch.from_numpy(norm_mat).to(torch.float32)
 
 
 def rand_cos_sim(v, costheta):
