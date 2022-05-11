@@ -13,11 +13,17 @@ from spriteworld.utils import sprites_filename
 from ima_vae.metrics.cima import cima_kl_diagonality
 
 
+def l2_normalize(Amat, axis=0):
+    l2norm = np.sqrt(np.sum(Amat * Amat, axis))
+    Amat = Amat / l2norm
+    return Amat
+
+
 def get_lin_mix(obs_dim):
     rank = -1
     while rank != obs_dim:
         mat = np.random.rand(obs_dim, obs_dim)
-        norm_mat = mat / np.power(np.abs(np.linalg.det(mat)), 1.0 / obs_dim)
+        norm_mat = l2_normalize(mat, axis=0)
         try:
             rank = np.linalg.matrix_rank(norm_mat, tol=1e-6).item()
         except:
