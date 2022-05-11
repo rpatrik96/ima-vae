@@ -96,7 +96,7 @@ class iVAE(nn.Module):
         prior_var: float = 1.0,
     ):
         # prior_params
-        self.prior_mean = prior_mean * torch.ones(1).to(device)
+        self.prior_mean = prior_mean * torch.zeros(1).to(device)
         self.prior_var = prior_var * torch.ones(1).to(device)
         self.prior_alpha = prior_alpha
         self.prior_beta = prior_beta
