@@ -33,6 +33,14 @@ def leaky_ReLU_1d(d, negSlope):
 leaky1d = np.vectorize(leaky_ReLU_1d)
 
 
+def smooth_leaky_relu(x, alpha=1.0):
+    r"""Custom activation function
+    Source:
+    https://stats.stackexchange.com/questions/329776/approximating-leaky-relu-with-a-differentiable-function
+    """
+    return alpha * x + (1 - alpha) * np.logaddexp(x, 0)
+
+
 def sigmoidAct(x):
     """
     one dimensional application of sigmoid activation function
@@ -76,6 +84,7 @@ def gen_data(
     mean=np.random.uniform(0, 0),
     var=np.random.uniform(0.01, 3),
     ar_flow=False,
+    mlp=False,
 ):
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -101,13 +110,15 @@ def gen_data(
         mixing, obs, sources, unmixing, linear_map = gen_mobius(
             num_dim, obs, sources, cos_theta
         )
+    elif ar_flow is True:
+        mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
+    elif mlp is True:
+        mixing, obs, sources, unmixing = gen_mlp(
+            neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources
+        )
     else:
-        if ar_flow is True:
-            mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
-        else:
-            mixing, obs, sources, unmixing = gen_mlp(
-                neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources
-            )
+        raise NotImplementedError("No mixing selected!")
+
     if one_hot_labels:
         labels = to_one_hot(labels)[0]
 
@@ -207,6 +218,8 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
             obs = leaky_ReLU(obs, neg_slope)
         elif nonlin == "sigmoid":
             obs = sigmoidAct(obs)
+        elif nonlin == "smooth_lrelu":
+            obs = smooth_leaky_relu(obs)
         # Apply mixing:
         obs = np.dot(obs, mixing_matrix)
     return mixing, obs, sources, unmixing

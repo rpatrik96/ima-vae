@@ -35,6 +35,7 @@ class IMADataModule(pl.LightningDataModule):
         prior_var: float = 1.0,
         prior_mean: float = 0.0,
         ar_flow: bool = False,
+        mlp=False,
         projective: bool = False,
         affine: bool = False,
         deltah: int = 0,
@@ -46,6 +47,7 @@ class IMADataModule(pl.LightningDataModule):
     ):
         """
 
+        :param mlp:
         :param angle: angle flag for dSprites
         :param shape: shape flag for dSprites
         :param deltah: Disturbance in the Hue channel
@@ -122,7 +124,7 @@ class IMADataModule(pl.LightningDataModule):
                 num_segment=self.hparams.n_segments,
                 num_segment_obs=n_obs_per_seg,
                 orthog=self.hparams.orthog,
-                nonlin="none" if self.hparams.linear is True else "lrelu",
+                nonlin="none" if self.hparams.linear is True else "smooth_lrelu",
                 source=self.hparams.synth_source,
                 cos_theta=self.hparams.cos_theta,
                 mobius=self.hparams.mobius,
@@ -131,6 +133,7 @@ class IMADataModule(pl.LightningDataModule):
                 mean=self.hparams.prior_mean,
                 var=self.hparams.prior_var,
                 ar_flow=self.hparams.ar_flow,
+                mlp=self.hparams.mlp,
             )
         else:
             raise ValueError
