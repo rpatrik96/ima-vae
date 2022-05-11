@@ -296,15 +296,31 @@ class IMAModule(pl.LightningModule):
 
             wandb_logger.log({f"{panel_name}/reconstructions": table})
 
-    def _log_mcc(self, estimated_factors, sources, panel_name, log=True):
+    def _log_mcc(
+        self, estimated_factors, sources, panel_name, log=True, spearman: bool = False
+    ):
+        s_np = sources.permute(1, 0).cpu().numpy()
+        s_hat_np = estimated_factors.permute(1, 0).cpu().numpy()
         mat, _, _ = ima_vae.metrics.mcc.correlation(
-            sources.permute(1, 0).cpu().numpy(),
-            estimated_factors.permute(1, 0).cpu().numpy(),
+            s_np,
+            s_hat_np,
             method="Pearson",
         )
         mcc = np.mean(np.abs(np.diag(mat)))
         if log is True:
             self.log(f"{panel_name}/mcc", mcc, on_epoch=True, on_step=False)
+
+        if spearman is True:
+            mat, _, _ = ima_vae.metrics.mcc.correlation(
+                s_np,
+                s_hat_np,
+                method="Spearman",
+            )
+            mcc = np.mean(np.abs(np.diag(mat)))
+            if log is True:
+                self.log(
+                    f"{panel_name}/mcc_spearman", mcc, on_epoch=True, on_step=False
+                )
 
         return mcc
 
