@@ -41,6 +41,8 @@ parameters:
     value: 10
   model.n_layers:
     value: 2
+  trainer.gpus:
+    value: 0
 
 
 
