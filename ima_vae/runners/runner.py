@@ -199,6 +199,15 @@ class IMAModule(pl.LightningModule):
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
         self._log_mcc(latent, sources, panel_name, spearman=True)
 
+        with torch.no_grad():
+            _, enc_mean, _, _ = self.model._encode(reconstruction)
+            self.log(
+                f"{panel_name}/mse_source_mean_enc",
+                (sources - enc_mean).pow(2).mean(),
+                on_epoch=True,
+                on_step=False,
+            )
+
         # self.val_mcc.update(sources=sources,estimated_factors=latent)
 
         self._log_cima(latent, panel_name)
@@ -325,7 +334,6 @@ class IMAModule(pl.LightningModule):
             if source_pdf != self.model.prior.name:
                 if self.hparams.prior == "gaussian":
                     if self.hparams.fix_prior is True:
-                        print("applying cdf transform")
                         s_hat_cdf = (
                             torch.distributions.Normal(
                                 self.hparams.prior_mean, np.sqrt(self.hparams.prior_var)
