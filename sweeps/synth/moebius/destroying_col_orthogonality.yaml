@@ -21,6 +21,8 @@ parameters:
     value: uniform
   data.synth_source:
     value: uniform
+  trainer.max_epochs:
+    value: 400
   model.latent_dim:
     value: 3
   model.decoder_var:
