@@ -207,7 +207,7 @@ class iVAE(nn.Module):
 
         log_pz_u, mean, var = self._prior_log_likelihood(latents, u)
 
-        if self.prior.name == "gauss" and self.posterior.diag is True:
+        if False and self.prior.name == "gaussian" and self.posterior.diag is True:
 
             if self.fix_prior is True:
                 # source: https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Kullback%E2%80%93Leibler_divergence
@@ -274,7 +274,7 @@ class iVAE(nn.Module):
                 prior_mean = prior_params[:, : self.latent_dim]
                 prior_logvar = prior_params[:, self.latent_dim :]
 
-            if self.prior.name == "gauss":
+            if self.prior.name == "gaussian":
                 if self.fix_prior is True:
                     mean, var = self.prior_mean, prior_params.exp()
 

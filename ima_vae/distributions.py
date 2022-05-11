@@ -47,7 +47,7 @@ class Normal(Dist):
         self._dist = dist.normal.Normal(
             torch.zeros(1).to(self.device), torch.ones(1).to(self.device)
         )
-        self.name = "gauss"
+        self.name = "gaussian"
         self.diag = True
 
     def sample(self, mu, v, diag=True):
