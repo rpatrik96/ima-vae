@@ -197,7 +197,7 @@ class IMAModule(pl.LightningModule):
 
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
-        self._log_mcc(latent, sources, panel_name)
+        self._log_mcc(latent, sources, panel_name, spearman=True)
 
         # self.val_mcc.update(sources=sources,estimated_factors=latent)
 
@@ -236,7 +236,7 @@ class IMAModule(pl.LightningModule):
 
         panel_name = "Metrics/test"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
-        self._log_mcc(latent, sources, panel_name)
+        self._log_mcc(latent, sources, panel_name, spearman=True)
 
         # self.val_mcc.update(sources=sources,estimated_factors=latent)
 
@@ -299,11 +299,11 @@ class IMAModule(pl.LightningModule):
     def _log_mcc(
         self, estimated_factors, sources, panel_name, log=True, spearman: bool = False
     ):
-        s_np = sources.permute(1, 0).cpu().numpy()
-        s_hat_np = estimated_factors.permute(1, 0).cpu().numpy()
+        s = sources.permute(1, 0).cpu().numpy()
+        s_hat = estimated_factors.permute(1, 0).cpu().numpy()
         mat, _, _ = ima_vae.metrics.mcc.correlation(
-            s_np,
-            s_hat_np,
+            s,
+            s_hat,
             method="Pearson",
         )
         mcc = np.mean(np.abs(np.diag(mat)))
@@ -312,8 +312,8 @@ class IMAModule(pl.LightningModule):
 
         if spearman is True:
             mat, _, _ = ima_vae.metrics.mcc.correlation(
-                s_np,
-                s_hat_np,
+                s,
+                s_hat,
                 method="Spearman",
             )
             mcc = np.mean(np.abs(np.diag(mat)))
@@ -321,6 +321,59 @@ class IMAModule(pl.LightningModule):
                 self.log(
                     f"{panel_name}/mcc_spearman", mcc, on_epoch=True, on_step=False
                 )
+        if (source_pdf := self.trainer.datamodule.hparams.synth_source) == "uniform":
+            if source_pdf != self.model.prior.name:
+                if self.hparams.prior == "gaussian":
+                    if self.hparams.fix_prior is True:
+                        print("applying cdf transform")
+                        s_hat_cdf = (
+                            torch.distributions.Normal(
+                                self.hparams.prior_mean, np.sqrt(self.hparams.prior_var)
+                            )
+                            .cdf(estimated_factors)
+                            .permute(1, 0)
+                            .cpu()
+                            .numpy()
+                        )
+
+                        mat, _, _ = ima_vae.metrics.mcc.correlation(
+                            s,
+                            s_hat_cdf,
+                            method="Pearson",
+                        )
+                        mcc = np.mean(np.abs(np.diag(mat)))
+                        if log is True:
+                            self.log(
+                                f"{panel_name}/mcc", mcc, on_epoch=True, on_step=False
+                            )
+
+                        if spearman is True:
+                            mat, _, _ = ima_vae.metrics.mcc.correlation(
+                                s,
+                                s_hat_cdf,
+                                method="Spearman",
+                            )
+                            mcc = np.mean(np.abs(np.diag(mat)))
+                            if log is True:
+                                self.log(
+                                    f"{panel_name}/mcc_spearman",
+                                    mcc,
+                                    on_epoch=True,
+                                    on_step=False,
+                                )
+                    else:
+                        raise NotImplementedError(
+                            "CDF transform not implemented for trainable Gaussian priors"
+                        )
+                else:
+                    raise NotImplementedError(
+                        f"CDF transform not implemented for {self.model.prior.name} priors"
+                    )
+
+        else:
+            raise NotImplementedError(
+                f"CDF transform not implemented if the source distribution is {source_pdf} priors"
+            )
 
         return mcc
 
