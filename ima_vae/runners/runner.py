@@ -362,7 +362,7 @@ class IMAModule(pl.LightningModule):
                             mcc = np.mean(np.abs(np.diag(mat)))
                             if log is True:
                                 self.log(
-                                    f"{panel_name}/mcc",
+                                    f"{panel_name}/mcc_cdf",
                                     mcc,
                                     on_epoch=True,
                                     on_step=False,
@@ -377,7 +377,7 @@ class IMAModule(pl.LightningModule):
                                 mcc = np.mean(np.abs(np.diag(mat)))
                                 if log is True:
                                     self.log(
-                                        f"{panel_name}/mcc_spearman",
+                                        f"{panel_name}/mcc_spearman_cdf",
                                         mcc,
                                         on_epoch=True,
                                         on_step=False,
