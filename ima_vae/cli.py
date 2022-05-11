@@ -70,10 +70,10 @@ cli = MyLightningCLI(
         "callbacks": [
             ModelCheckpoint(
                 save_top_k=1,
-                monitor="Metrics/val/mcc",
-                mode="max",
+                monitor="Metrics/val/neg_elbo",
+                mode="min",
             ),
-            EarlyStopping(monitor="Metrics/val/neg_elbo", mode="min", patience=6),
+            EarlyStopping(monitor="Metrics/val/neg_elbo", mode="min", patience=10),
         ]
     },
 )
