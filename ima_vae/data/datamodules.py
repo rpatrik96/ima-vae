@@ -43,10 +43,14 @@ class IMADataModule(pl.LightningDataModule):
         deltav: int = 0,
         angle: bool = False,
         shape: bool = False,
+        unit_det=True,
+        col_norm=False,
         **kwargs,
     ):
         """
 
+        :param unit_det: linear map on top of Mobius will have unit determinant
+        :param col_norm: linear map on top of Mobius will have columns with unit norm
         :param mlp: use MLP mixing
         :param break_orthog: for 2D, it is cos theta, for higher D, it is a flag to break col-orthogonality in Mobius
         :param angle: angle flag for dSprites
@@ -126,6 +130,7 @@ class IMADataModule(pl.LightningDataModule):
                 num_segment_obs=n_obs_per_seg,
                 orthog=self.hparams.orthog,
                 nonlin="none" if self.hparams.linear is True else "smooth_lrelu",
+                seed=self.hparams.seed,
                 source=self.hparams.synth_source,
                 break_orthog=self.hparams.break_orthog,
                 mobius=self.hparams.mobius,
@@ -135,7 +140,8 @@ class IMADataModule(pl.LightningDataModule):
                 var=self.hparams.prior_var,
                 ar_flow=self.hparams.ar_flow,
                 mlp=self.hparams.mlp,
-                seed=self.hparams.seed,
+                unit_det=self.hparams.unit_det,
+                col_norm=self.hparams.col_norm,
             )
         else:
             raise ValueError

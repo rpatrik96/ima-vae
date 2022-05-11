@@ -86,6 +86,8 @@ def gen_data(
     var=np.random.uniform(0.01, 3),
     ar_flow=False,
     mlp=False,
+    unit_det=True,
+    col_norm=False,
 ):
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -109,7 +111,7 @@ def gen_data(
     linear_map = None
     if mobius is True:
         mixing, obs, sources, unmixing, linear_map = gen_mobius(
-            num_dim, obs, sources, break_orthog
+            num_dim, obs, sources, break_orthog, unit_det, col_norm
         )
     elif ar_flow is True:
         mixing, obs, sources, unmixing = gen_ar_flow(num_dim, sources)
