@@ -19,11 +19,21 @@ def l2_normalize(Amat, axis=0):
     return Amat
 
 
-def get_lin_mix(obs_dim):
+def get_lin_mix(obs_dim, unit_det=False, col_norm=False):
+
+    assert unit_det != col_norm
     rank = -1
     while rank != obs_dim:
         mat = np.random.rand(obs_dim, obs_dim)
-        norm_mat = l2_normalize(mat, axis=0)
+        if col_norm is True:
+            norm_mat = l2_normalize(mat, axis=0)
+        elif unit_det is True:
+            norm_mat = mat / np.power(np.abs(np.linalg.det(mat)), 1.0 / obs_dim)
+        else:
+            raise ValueError(
+                f"Either unit_det or col_norm should be True, but both are False!"
+            )
+
         try:
             rank = np.linalg.matrix_rank(norm_mat, tol=1e-6).item()
         except:
