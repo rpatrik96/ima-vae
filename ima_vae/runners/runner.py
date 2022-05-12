@@ -339,8 +339,8 @@ class IMAModule(pl.LightningModule):
         if cdf is True:
             if (
                 source_pdf := self.trainer.datamodule.hparams.synth_source
-            ) == "uniform":
-                if source_pdf != self.model.prior.name:
+            ) != self.model.prior.name:
+                if source_pdf == "uniform":
                     if self.hparams.prior == "gaussian":
                         if self.hparams.fix_prior is True:
                             s_hat_cdf = (
@@ -391,10 +391,10 @@ class IMAModule(pl.LightningModule):
                             f"CDF transform not implemented for {self.model.prior.name} priors"
                         )
 
-            else:
-                raise NotImplementedError(
-                    f"CDF transform not implemented if the source distribution is {source_pdf} priors"
-                )
+                else:
+                    raise NotImplementedError(
+                        f"CDF transform not implemented if the source distribution is {source_pdf} priors"
+                    )
 
         return mcc
 
