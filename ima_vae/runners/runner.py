@@ -53,9 +53,9 @@ class IMAModule(pl.LightningModule):
     ):
         """
 
-        :param exclude_uniform_boundary:
-        :param analytic_kl:
-        :param hidden_latent_factor:
+        :param exclude_uniform_boundary: exclude point near the boundary of the uniform source distribution
+        :param analytic_kl: calculate the analytic KL for Gaussians (slow)
+        :param hidden_latent_factor: scalar factor to determine MLP width
         :param diag_posterior: choose a diagonal posterior
         :param beta: beta of the beta-VAE
         :param fix_prior: fix (and not learn) prior distribution
