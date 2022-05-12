@@ -116,7 +116,7 @@ class IMAModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         obs, labels, sources = batch
-        neg_elbo, z_est, rec_loss, kl_loss, _, _ = self.model.neg_elbo(obs, labels)
+        neg_elbo, z_est, rec_loss, kl_loss, _, _, _ = self.model.neg_elbo(obs, labels)
 
         panel_name = "Metrics/train"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, None, panel_name)
@@ -193,17 +193,41 @@ class IMAModule(pl.LightningModule):
             kl_loss,
             latent_stat,
             reconstruction,
-        ) = self.model.neg_elbo(obs, labels, reconstruction=True)
+            encoding_mean,
+        ) = self.model.neg_elbo(obs, labels, reconstruction=True, mean_latents=True)
 
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
         self._log_mcc(latent, sources, panel_name, spearman=True, cdf=True)
 
         with torch.no_grad():
-            _, enc_mean, _, _ = self.model._encode(reconstruction)
+            _, mean_decoded_sources, _, _ = self.model._encode(
+                self.model.decoder(sources)
+            )
+            decoded_mean_latents = self.model.decoder(encoding_mean)
+
+            if False and self.trainer.datamodule.hparams.synth_source == "uniform":
+
+                print("Filtering interior points")
+                source_min_filter = sources.min(1)[0] > -0.4
+                source_max_filter = sources.max(1)[0] < 0.4
+                source_interior_filter = source_min_filter & source_max_filter
+
+                sources = sources[source_interior_filter]
+                mean_decoded_sources = mean_decoded_sources[source_interior_filter]
+                obs = obs[source_interior_filter]
+                decoded_mean_latents = decoded_mean_latents[source_interior_filter]
+
             self.log(
-                f"{panel_name}/mse_source_mean_enc",
-                (sources - enc_mean).pow(2).mean(),
+                f"{panel_name}/mse_sources_mean_decoded_sources",
+                (sources - mean_decoded_sources).pow(2).mean(),
+                on_epoch=True,
+                on_step=False,
+            )
+
+            self.log(
+                f"{panel_name}/mse_obs_decoded_mean_latents",
+                (obs - decoded_mean_latents).pow(2).mean(),
                 on_epoch=True,
                 on_step=False,
             )
@@ -241,6 +265,7 @@ class IMAModule(pl.LightningModule):
             kl_loss,
             latent_stat,
             reconstruction,
+            _,
         ) = self.model.neg_elbo(obs, labels, reconstruction=True)
 
         panel_name = "Metrics/test"

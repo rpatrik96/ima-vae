@@ -187,9 +187,12 @@ class iVAE(nn.Module):
         reconstructions = self.decoder(latents)
         return enc_mean, enc_logvar, latents, reconstructions, log_qz_xu
 
-    def neg_elbo(self, x, u, log=True, reconstruction: bool = False):
+    def neg_elbo(
+        self, x, u, log=True, reconstruction: bool = False, mean_latents=False
+    ):
         """
 
+        :param mean_latents:
         :param x: observations
         :param u: segment labels
         :return:
@@ -260,6 +263,7 @@ class iVAE(nn.Module):
             kl_loss,
             None if log is False else latent_stat,
             None if reconstruction is False else reconstructions,
+            None if mean_latents is False else encoding_mean,
         )
 
     def _prior_log_likelihood(self, latents, u):
