@@ -1,0 +1,48 @@
+command:
+  - ${env}
+  - python3
+  - ima_vae/cli.py
+  - fit
+  - "--config"
+  - "configs/trainer.yaml"
+  - "--config"
+  - "configs/synth/moebius.yaml"
+  - ${args}
+entity: ima-vae
+project: priors
+method: grid
+metric:
+  goal: maximize
+  name: Metrics/val/mcc
+parameters:
+  seed_everything:
+    values: [ 42,64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645] #, 54, 8864, 5454, 697, 2 , 7, 69, 78695, 2022, 874]
+  model.prior:
+    value: uniform
+  data.synth_source:
+    value: uniform
+  trainer.max_epochs:
+    value: 400
+  model.latent_dim:
+    value: 2
+  model.decoder_var:
+    value: 1e-6
+  model.lr:
+    value: 1e-3
+  data.batch_size:
+    value: 64
+  data.break_orthog:
+    values: [0.0, 0.2, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.975, 0.999]
+  data.unit_det:
+    value: false
+  data.col_norm:
+    value: false
+  model.hidden_latent_factor:
+    value: 10
+  model.n_layers:
+    value: 2
+  trainer.gpus:
+    value: 0
+
+
+
