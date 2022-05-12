@@ -47,10 +47,14 @@ class IMAModule(pl.LightningModule):
         fix_prior: bool = True,
         beta=1.0,
         diag_posterior: bool = True,
+        exclude_uniform_boundary=False,
+        analytic_kl=False,
         **kwargs,
     ):
         """
 
+        :param exclude_uniform_boundary:
+        :param analytic_kl:
         :param hidden_latent_factor:
         :param diag_posterior: choose a diagonal posterior
         :param beta: beta of the beta-VAE
@@ -95,6 +99,7 @@ class IMAModule(pl.LightningModule):
             prior_mean=prior_mean,
             prior_var=prior_var,
             decoder_var=decoder_var,
+            analytic_kl=analytic_kl,
         )
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
@@ -206,7 +211,10 @@ class IMAModule(pl.LightningModule):
             )
             decoded_mean_latents = self.model.decoder(encoding_mean)
 
-            if False and self.trainer.datamodule.hparams.synth_source == "uniform":
+            if (
+                self.trainer.datamodule.hparams.synth_source == "uniform"
+                and self.hparams.exclude_uniform_boundary is True
+            ):
 
                 print("Filtering interior points")
                 source_min_filter = sources.min(1)[0] > -0.4

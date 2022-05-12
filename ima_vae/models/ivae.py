@@ -32,6 +32,7 @@ class iVAE(nn.Module):
         prior_mean: float = 0.0,
         prior_var: float = 1.0,
         decoder_var: float = 0.000001,
+        analytic_kl=False,
     ):
         super().__init__()
 
@@ -45,6 +46,7 @@ class iVAE(nn.Module):
         self.fix_prior = fix_prior
         self.beta = beta
         self.hidden_dim = self.latent_dim * hidden_latent_factor
+        self.analytic_kl = analytic_kl
 
         self._setup_distributions(
             likelihood,
@@ -210,7 +212,11 @@ class iVAE(nn.Module):
 
         log_pz_u, mean, var = self._prior_log_likelihood(latents, u)
 
-        if False and self.prior.name == "gaussian" and self.posterior.diag is True:
+        if (
+            self.analytic_kl is True
+            and self.prior.name == "gaussian"
+            and self.posterior.diag is True
+        ):
 
             if self.fix_prior is True:
                 # source: https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Kullback%E2%80%93Leibler_divergence
