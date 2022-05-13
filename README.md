@@ -37,6 +37,11 @@ cd ima-vae
 pip install -e .   
 pip install -r requirements.txt
 
+# install submodule requirements
+pip install --requirement ima/requirements.txt --quiet
+pip install --requirement tests/requirements.txt --quiet
+pip install --requirement spriteworld/requirements.txt --quiet
+
 # install pre-commit hooks
 pre-commit install
  ```   
