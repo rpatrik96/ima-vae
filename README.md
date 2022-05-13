@@ -1,33 +1,8 @@
-```bash
- python3 ima_vae/cli.py fit --help
- python3 ima_vae/cli.py fit --config configs/trainer.yaml --config configs/synth/moebius/moebius.yaml --config configs/synth/moebius/2d.yaml --model.prior=beta
-```
-
-### Hyperparameter optimization
-```bash
-wandb sweep sweeps/priors.yaml --entity ima-vae --project experiment # returns sweep ID
-wandb agent --entity ima-vae --project experiment ima-vae/experiment/<ID-comes-here>
-```
-
-### Deep learning project seed
-Use this seed to start new deep learning / ML projects.
-
-- Built in setup.py
-- Built in requirements
-- Examples with MNIST
-- Badges
-- Bibtex
-
-#### Goals  
-The goal of this seed is to structure ML paper-code the same so that work can easily be extended and replicated.   
-
-### DELETE EVERYTHING ABOVE FOR YOUR PROJECT  
- 
 ---
 
 <div align="center">    
  
-# Your Project Name     
+# VAEs perform Independent Mechanism Analysis   
 
 [![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg)](https://www.nature.com/articles/nature14539)
 [![Conference](http://img.shields.io/badge/NeurIPS-2019-4b44ce.svg)](https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018)
@@ -52,10 +27,13 @@ What it does
 First, install dependencies   
 ```bash
 # clone ima_vae   
-git clone https://github.com/YourGithubName/deep-learning-project-template
+git clone --recurse-submodules https://github.com/rpatrik96/ima-vae
+
+# if forgot to pull submodules, run
+git submodule update --init
 
 # install ima_vae   
-cd deep-learning-cpca_vae-template 
+cd ima-vae
 pip install -e .   
 pip install -r requirements.txt
 
@@ -63,35 +41,28 @@ pip install -r requirements.txt
 pre-commit install
  ```   
  Next, navigate to any file and run it.   
- ```bash
-# module folder
-cd ima_vae
+```bash
+ python3 ima_vae/cli.py fit --help
+ python3 ima_vae/cli.py fit --config configs/trainer.yaml --config configs/synth/moebius/moebius.yaml --config configs/synth/moebius/2d.yaml --model.prior=beta
+```
 
-# run module (example: mnist as your main contribution)   
-python lit_classifier_main.py    
+### Hyperparameter optimization
+
+First, you need to log into `wandb`
+```bash
+wandb login #you will find your API key at https://wandb.ai/authorize
+```
+
+Then you can create and run the sweep
+```bash
+wandb sweep sweeps/synth/mlp/finding_optimal_gamma_uniform.yaml  # returns sweep ID
+wandb agent <ID-comes-here> --count=<number of runs> # when used on a cluster, set it to one and start multiple processes
 ```
 
 ## Imports
 This project is setup as a package which means you can now easily import any file into any other file like so:
 
-```python
-from cpca_vae.datasets.mnist import mnist
-from cpca_vae.lit_classifier_main import LitClassifier
-from pytorch_lightning import Trainer
 
-# model
-model = LitClassifier()
-
-# data
-train, val, test = mnist()
-
-# train
-trainer = Trainer()
-trainer.fit(model, train, val)
-
-# test using the best model!
-trainer.test(test_dataloaders=test)
-```
 
 ### Citation   
 ```
