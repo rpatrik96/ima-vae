@@ -40,9 +40,9 @@ parameters:
   model.hidden_latent_factor:
     value: 10
   model.n_layers:
-    value: 2
+    value: 3
   trainer.gpus:
-    value: 0
+    value: 1
 
 
 
