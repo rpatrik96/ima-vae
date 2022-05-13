@@ -42,7 +42,7 @@ pip install --requirement ima/requirements.txt --quiet
 pip install --requirement tests/requirements.txt --quiet
 pip install --requirement spriteworld/requirements.txt --quiet
 
-# install pre-commit hooks
+# install pre-commit hooks (only necessary for development)
 pre-commit install
  ```   
  Next, navigate to any file and run it.   
