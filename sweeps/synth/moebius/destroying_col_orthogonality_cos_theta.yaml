@@ -26,9 +26,9 @@ parameters:
   model.latent_dim:
     value: 2
   model.decoder_var:
-    value: 1e-6
+    value: 1e-4
   model.lr:
-    value: 1e-3
+    value: 2e-4
   data.batch_size:
     value: 64
   data.break_orthog:
@@ -37,6 +37,8 @@ parameters:
     value: false
   data.col_norm:
     value: false
+  data.seed:
+    value: 1
   model.hidden_latent_factor:
     value: 10
   model.n_layers:
