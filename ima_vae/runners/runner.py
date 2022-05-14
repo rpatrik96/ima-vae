@@ -231,7 +231,6 @@ class IMAModule(pl.LightningModule):
                 and self.hparams.exclude_uniform_boundary is True
             ):
 
-                print("Filtering interior points")
                 source_min_filter = sources.min(1)[0] > -0.4
                 source_max_filter = sources.max(1)[0] < 0.4
                 source_interior_filter = source_min_filter & source_max_filter
