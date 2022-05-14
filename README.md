@@ -37,6 +37,9 @@ cd ima-vae
 pip install -e .   
 pip install -r requirements.txt
 
+# install spritesworld
+cd spritesworld && pip install -e .
+
 # install submodule requirements
 pip install --requirement ima/requirements.txt --quiet
 pip install --requirement tests/requirements.txt --quiet
