@@ -1,0 +1,55 @@
+command:
+  - ${env}
+  - python3
+  - ima_vae/cli.py
+  - fit
+  - "--config"
+  - "configs/trainer.yaml"
+  - "--config"
+  - "configs/synth/moebius.yaml"
+  - ${args}
+entity: ima-vae
+project: priors
+method: grid
+metric:
+  goal: maximize
+  name: Metrics/val/mcc
+parameters:
+  data.seed:
+    values: [  845, 10791,  6900, 10038,  6650, 14566, 12546,  3897,  4706,  9399,
+        10768,  1362, 14074, 13733, 11059,  7300,  8138,  7172, 15816,   627,
+        15263,  8489, 16154, 12798, 14150, 14879, 11073,  3588,  9509, 10389,
+         2768, 15303, 15667,  2127, 11407,  5537, 11924, 13872,  2284, 14670,
+         2035, 12713,  3897,  9342, 11846, 13447,  9066,  3614,  3776,  3975,
+        16374, 10972, 12709,  3600, 15813, 14819,   938, 12655,  4793,  3315,
+         8192, 15797, 10211,  7803,  4190, 13693, 13203,  3125, 12618, 14575,
+         5239,  2243,  4069,  9863, 10664, 14502,  7990,  3123, 11507, 11500]
+  model.prior:
+    value: uniform
+  data.synth_source:
+    value: uniform
+  trainer.max_epochs:
+    value: 400
+  model.latent_dim:
+    value: 3
+  model.decoder_var:
+    value: 1e-5
+  model.lr:
+    value: 1e-3
+  data.batch_size:
+    value: 64
+  data.break_orthog:
+    value: 1
+  data.unit_det:
+    value: true
+  data.col_norm:
+    value: false
+  model.hidden_latent_factor:
+    value: 10
+  model.n_layers:
+    value: 2
+  trainer.gpus:
+    value: 0
+
+
+
