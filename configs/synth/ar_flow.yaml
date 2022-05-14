@@ -1,0 +1,37 @@
+model:
+  activation: lrelu
+  n_segments: 1
+  n_classes: 1
+  dataset: synth
+  log_latents: false
+  log_reconstruction: false
+  prior: gaussian
+  latent_dim: 4
+  n_layers: 3
+  lr: 0.001
+  prior_alpha: 3.0
+  prior_beta: 11.0
+  prior_mean: 0.0
+  prior_var: 1.0
+  decoder_var: 1.0e-04
+  fix_prior: true
+  beta: 1.0
+  diag_posterior: true
+data:
+  batch_size: 64
+  orthog: true
+  mobius: false
+  linear: false
+  mlp: false
+  ar_flow: true
+  n_segments: 1
+  mixing_layers: 3
+  n_obs: 60000
+  seed: 1
+  n_classes: 1
+  dataset: synth
+  train_transforms: null
+  val_transforms: null
+  test_transforms: null
+  synth_source: gaussian
+ckpt_path: null
