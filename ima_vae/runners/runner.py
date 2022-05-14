@@ -223,6 +223,7 @@ class IMAModule(pl.LightningModule):
 
             if (prior := self.model.prior.name) == "beta" or prior == "uniform":
                 encoding_mean = torch.sigmoid(encoding_mean)
+                mean_decoded_sources = torch.sigmoid(mean_decoded_sources)
 
             decoded_mean_latents = self.model.decoder(encoding_mean)
 
