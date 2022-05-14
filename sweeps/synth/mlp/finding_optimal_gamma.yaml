@@ -30,9 +30,9 @@ parameters:
   model.lr:
     value: 1e-3
   model.hidden_latent_factor:
-    value: 10
+    value: 20
   model.n_layers:
-    value: 2
+    value: 4
 
 
 
