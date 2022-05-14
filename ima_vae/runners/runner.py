@@ -108,12 +108,23 @@ class IMAModule(pl.LightningModule):
     def on_fit_start(self) -> None:
         if (
             self.trainer.datamodule.mixing is not None
-            and self.trainer.datamodule.linear_map is not None
+            and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
         ):
-            if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
+
+            if self.trainer.datamodule.linear_map is not None:
                 self.logger.experiment.summary[
                     "mixing_linear_map_cima"
                 ] = cima_kl_diagonality(self.trainer.datamodule.linear_map)
+            else:
+
+                sources = next(iter(self.trainer.datamodule.train_dataloader()))[-1]
+
+                J_mix = jacobian(
+                    lambda x: self.trainer.datamodule.mixing(x).sum(dim=0), sources
+                ).permute(1, 0, 2)
+                self.logger.experiment.summary["mixing_cima"] = cima_kl_diagonality(
+                    J_mix.mean(0)
+                )
 
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions
