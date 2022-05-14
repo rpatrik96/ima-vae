@@ -117,7 +117,9 @@ class IMAModule(pl.LightningModule):
                 ] = cima_kl_diagonality(self.trainer.datamodule.linear_map)
             else:
 
-                sources = next(iter(self.trainer.datamodule.train_dataloader()))[-1]
+                sources = next(iter(self.trainer.datamodule.train_dataloader()))[-1].to(
+                    self.hparams.device
+                )
 
                 J_mix = jacobian(
                     lambda x: self.trainer.datamodule.mixing(x).sum(dim=0), sources
