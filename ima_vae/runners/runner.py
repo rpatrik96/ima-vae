@@ -49,10 +49,14 @@ class IMAModule(pl.LightningModule):
         diag_posterior: bool = True,
         exclude_uniform_boundary=False,
         analytic_kl=False,
+        encoder_extra_layers=0,
+        encoder_extra_width=0,
         **kwargs,
     ):
         """
 
+        :param encoder_extra_layers:
+        :param encoder_extra_width:
         :param exclude_uniform_boundary: exclude point near the boundary of the uniform source distribution
         :param analytic_kl: calculate the analytic KL for Gaussians (slow)
         :param hidden_latent_factor: scalar factor to determine MLP width
@@ -100,6 +104,8 @@ class IMAModule(pl.LightningModule):
             prior_var=prior_var,
             decoder_var=decoder_var,
             analytic_kl=analytic_kl,
+            encoder_extra_layers=encoder_extra_layers,
+            encoder_extra_width=encoder_extra_width,
         )
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:

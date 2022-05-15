@@ -1,0 +1,44 @@
+command:
+  - ${env}
+  - python3
+  - ima_vae/cli.py
+  - fit
+  - "--config"
+  - "configs/trainer.yaml"
+  - "--config"
+  - "configs/synth/mlp.yaml"
+  - ${args}
+entity: ima-vae
+project: priors
+method: grid
+metric:
+  goal: maximize
+  name: Metrics/val/mcc
+parameters:
+  model.decoder_var:
+    values: [1e-1, 1e-2, 1e-3, 1e-4, 1e-5] #,1e-7,1e-8, 1e-10]
+  seed_everything:
+    values: [ 42,64, 982, 5748, 23567] #, 89, 1996, 654, 35684, 87645, 54, 8864, 5454, 697, 2 , 7, 69, 78695, 2022, 874]
+  trainer.gpus:
+    value: 1
+  trainer.max_epochs:
+    value: 800
+  data.batch_size:
+    value: 64
+  model.latent_dim:
+    value: 3
+  model.lr:
+    values: [3e-3, 1e-3, 3e-4, 1e-4]
+  model.hidden_latent_factor:
+    value: 10
+  model.n_layers:
+    value: 2
+  model.encoder_extra_width:
+    values: [0, 15, 30]
+  model.encoder_extra_layers:
+    values: [0, 2, 4]
+  data.mixing_layers:
+    value: 2
+
+
+

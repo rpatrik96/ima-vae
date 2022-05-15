@@ -33,6 +33,8 @@ class iVAE(nn.Module):
         prior_var: float = 1.0,
         decoder_var: float = 0.000001,
         analytic_kl=False,
+        encoder_extra_layers=0,
+        encoder_extra_width=0,
     ):
         super().__init__()
 
@@ -65,7 +67,16 @@ class iVAE(nn.Module):
         self.interp_dir = None
         self.apply(weights_init)
 
-    def _setup_nets(self, dataset, device, n_layers, slope, decoder_var=0.000001):
+    def _setup_nets(
+        self,
+        dataset,
+        device,
+        n_layers,
+        slope,
+        decoder_var=0.000001,
+        encoder_extra_layers=0,
+        encoder_extra_width=0,
+    ):
         # decoder params
         self.decoder_var = decoder_var * torch.ones(1, dtype=torch.float64).to(device)
 
