@@ -40,6 +40,6 @@ parameters:
   data.mixing_layers:
     value: 2
   early_stopping.patience:
-    value: 30
+    value: 35
 
 
