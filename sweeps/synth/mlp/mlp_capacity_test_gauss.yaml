@@ -28,17 +28,18 @@ parameters:
   model.latent_dim:
     value: 3
   model.lr:
-    values: [3e-3, 1e-3, 3e-4, 1e-4]
+    value: 1e-3
   model.hidden_latent_factor:
     value: 10
   model.n_layers:
-    value: 2
+    value: 3
   model.encoder_extra_width:
-    values: [0, 15, 30]
+    value: 0 # [0, 15, 30]
   model.encoder_extra_layers:
-    values: [0, 2, 4]
+    value: 0 #[0, 2, 4]
   data.mixing_layers:
     value: 2
-
+  early_stopping.patience:
+    value: 20
 
 

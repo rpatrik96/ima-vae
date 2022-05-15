@@ -25,6 +25,15 @@ class MyLightningCLI(LightningCLI):
             help="Tags for the run on Weights and Biases",
         )
 
+        parser.add_lightning_class_args(EarlyStopping, "early_stopping")
+        parser.set_defaults(
+            {
+                "early_stopping.monitor": "Metrics/val/neg_elbo",
+                "early_stopping.mode": "min",
+                "early_stopping.patience": 5,
+            }
+        )
+
         parser.link_arguments("model.latent_dim", "data.latent_dim")
         parser.link_arguments("model.prior_mean", "data.prior_mean")
         parser.link_arguments("model.prior_var", "data.prior_var")
@@ -73,7 +82,6 @@ cli = MyLightningCLI(
                 monitor="Metrics/val/neg_elbo",
                 mode="min",
             ),
-            EarlyStopping(monitor="Metrics/val/neg_elbo", mode="min", patience=7),
         ]
     },
 )
