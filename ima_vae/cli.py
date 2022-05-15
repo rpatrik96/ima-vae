@@ -73,7 +73,7 @@ cli = MyLightningCLI(
                 monitor="Metrics/val/neg_elbo",
                 mode="min",
             ),
-            EarlyStopping(monitor="Metrics/val/neg_elbo", mode="min", patience=5),
+            EarlyStopping(monitor="Metrics/val/neg_elbo", mode="min", patience=7),
         ]
     },
 )
