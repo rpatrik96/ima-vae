@@ -4,7 +4,8 @@ from os.path import isfile
 
 
 def sweep2df(sweep_runs, filename, save=False, load=False):
-    if load is True and isfile(filename):
+    if load is True and isfile(filename) is True:
+        print(f"\t Loading {filename}...")
         return pd.read_csv(filename)
     data = []
     max_dim = -1
@@ -181,3 +182,64 @@ def format_violin(vp, facecolor="#1A85FF"):
         vp_ = vp[pn]
         vp_.set_edgecolor("black")
         vp_.set_linewidth(1)
+
+
+import matplotlib.pyplot as plt
+
+
+def create_violinplot(groups, xlabel, ylabel, xticklabels, filename=None, ax=None):
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        ax = ax.twinx()
+
+    vp = ax.violinplot(groups, showmedians=True)
+    format_violin(vp, "#1A85FF")
+
+    ax.set_xticklabels(xticklabels)
+    # ax.set_xticks(xticks)
+    # plt.locator_params(axis='y', nbins=5)
+    # plt.yticks(fontsize=24)
+    # plt.ylim([0, 0.5])
+    ax.set_ylabel(ylabel)
+    # ax.set_xlabel(xlabel)
+    if filename is not None:
+        plt.savefig(f"{filename}.svg")
+    return ax
+
+
+def violin_by_prior(
+    gauss_data,
+    laplace_data,
+    uniform_data,
+    xticks,
+    xlabel,
+    ylabel,
+    offset,
+    filename,
+    figsize=(8, 6),
+    log=False,
+):
+
+    plt.figure(figsize=figsize)
+    vp_gauss = plt.violinplot(
+        [np.log10(i) if log is True else i for i in gauss_data], positions=xticks
+    )
+    vp_laplace = plt.violinplot(
+        [np.log10(i) if log is True else i for i in laplace_data],
+        positions=-offset + xticks,
+    )
+    vp_uniform = plt.violinplot(
+        [np.log10(i) if log is True else i for i in uniform_data],
+        positions=offset + xticks,
+    )
+    plt.legend(
+        [vp_gauss["bodies"][0], vp_laplace["bodies"][0], vp_uniform["bodies"][0]],
+        ["gaussian", "laplace", "uniform"],
+        loc="upper right",
+    )
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.xticks(xticks)
+    # plt.tight_layout()
+    plt.savefig(filename)
