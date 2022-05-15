@@ -222,7 +222,7 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
         elif nonlin == "sigmoid":
             obs = sigmoidAct(obs)
         elif nonlin == "smooth_lrelu":
-            obs = smooth_leaky_relu(obs)
+            obs = smooth_leaky_relu(obs, neg_slope)
         # Apply mixing:
         obs = np.dot(obs, mixing_matrix)
     return mixing, obs, sources, unmixing
