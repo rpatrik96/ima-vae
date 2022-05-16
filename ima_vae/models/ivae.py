@@ -289,15 +289,15 @@ class iVAE(nn.Module):
             mean, var = self.prior_mean, self.prior_var
 
         else:
-            prior_params = self.conditioner(u)
 
             if self.fix_prior is False:
+                prior_params = self.conditioner(u)
                 prior_mean = prior_params[:, : self.latent_dim]
                 prior_logvar = prior_params[:, self.latent_dim :]
 
             if self.prior.name == "gaussian":
                 if self.fix_prior is True:
-                    mean, var = self.prior_mean, prior_params.exp()
+                    mean, var = self.prior_mean, self.prior_var  # prior_params.exp()
 
                 else:
                     mean, var = prior_mean, prior_logvar.exp()
