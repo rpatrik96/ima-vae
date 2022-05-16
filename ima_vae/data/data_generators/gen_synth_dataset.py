@@ -260,13 +260,16 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
     # Apply non-linearity
     if nonlin == "lrelu":
         act = lambda x: leaky_ReLU(x, neg_slope)
-        torch_act = torch.nn.LeakyReLU(negative_slope=neg_slope)
+        torch_act = nn.LeakyReLU(negative_slope=neg_slope)
     elif nonlin == "sigmoid":
         act = lambda x: sigmoidAct(x)
-        torch_act = torch.nn.Sigmoid()
+        torch_act = nn.Sigmoid()
     elif nonlin == "smooth_lrelu":
         torch_act = LeakySoftPlus(neg_slope)
         act = lambda x: smooth_leaky_relu(x, neg_slope)
+    elif nonlin == "none":
+        act = lambda x: x
+        torch_act = nn.Identity()
     else:
         raise ValueError
 
@@ -276,8 +279,8 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
         )
 
         # create the components for the torch mixing
-        layer = torch.nn.Linear(num_dim, num_dim, bias=False)
-        layer.weight = torch.nn.Parameter(
+        layer = nn.Linear(num_dim, num_dim, bias=False)
+        layer.weight = nn.Parameter(
             torch.from_numpy(mixing_matrix.astype(np.float32)).to(
                 "cuda" if torch.cuda.is_available() else "cpu"
             ),
