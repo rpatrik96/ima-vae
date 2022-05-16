@@ -41,5 +41,15 @@ parameters:
     value: 2
   early_stopping.patience:
     value: 35
+  model.fix_gt_decoder:
+    value: true
+  model.exclude_uniform_boundary:
+    value: true
+  model.prior:
+    value: uniform
+  data.synth_source:
+    value: uniform
+  data.linear:
+    values: [true, false]
 
 
