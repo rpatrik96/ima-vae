@@ -10,6 +10,7 @@ from disent.metrics._sap import _compute_sap
 from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
+from pdb import set_trace
 
 import ima_vae.metrics
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
@@ -51,10 +52,12 @@ class IMAModule(pl.LightningModule):
         analytic_kl=False,
         encoder_extra_layers=0,
         encoder_extra_width=0,
+        fix_gt_decoder=False,
         **kwargs,
     ):
         """
 
+        :param fix_gt_decoder:
         :param encoder_extra_layers:
         :param encoder_extra_width:
         :param exclude_uniform_boundary: exclude point near the boundary of the uniform source distribution
@@ -112,27 +115,26 @@ class IMAModule(pl.LightningModule):
             self.logger.watch(self.model, log="all", log_freq=250)
 
     def on_fit_start(self) -> None:
-        if (
-            self.trainer.datamodule.mixing is not None
-            and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
-        ):
+        if self.trainer.datamodule.mixing is not None:
+            if self.hparams.fix_gt_decoder is True:
+                self.model.gt_decoder = self.trainer.datamodule.mixing
 
-            if self.trainer.datamodule.linear_map is not None:
-                self.logger.experiment.summary[
-                    "mixing_linear_map_cima"
-                ] = cima_kl_diagonality(self.trainer.datamodule.linear_map)
-            else:
+            if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
+                if self.trainer.datamodule.linear_map is not None:
+                    self.logger.experiment.summary[
+                        "mixing_linear_map_cima"
+                    ] = cima_kl_diagonality(self.trainer.datamodule.linear_map)
+                else:
 
-                sources = next(iter(self.trainer.datamodule.train_dataloader()))[-1].to(
-                    self.hparams.device
-                )
-
-                J_mix = jacobian(
-                    lambda x: self.trainer.datamodule.mixing(x).sum(dim=0), sources
-                ).permute(1, 0, 2)
-                self.logger.experiment.summary["mixing_cima"] = cima_kl_diagonality(
-                    J_mix.mean(0)
-                )
+                    sources = next(iter(self.trainer.datamodule.train_dataloader()))[
+                        -1
+                    ].to(self.hparams.device)
+                    J_mix = jacobian(
+                        lambda x: self.trainer.datamodule.mixing(x).sum(dim=0), sources
+                    ).permute(1, 0, 2)
+                    self.logger.experiment.summary["mixing_cima"] = cima_kl_diagonality(
+                        J_mix.mean(0)
+                    )
 
     def forward(self, obs, labels):
         # in lightning, forward defines the prediction/inference actions
@@ -225,15 +227,15 @@ class IMAModule(pl.LightningModule):
         self._log_mcc(latent, sources, panel_name, spearman=True, cdf=True)
 
         with torch.no_grad():
-            _, mean_decoded_sources, _, _ = self.model._encode(
-                self.model.decoder(sources)
+            _, mean_decoded_sources, _, _ = self.model.encode(
+                self.model.decode(sources)
             )
 
             if (prior := self.model.prior.name) == "beta" or prior == "uniform":
                 encoding_mean = torch.sigmoid(encoding_mean)
                 mean_decoded_sources = torch.sigmoid(mean_decoded_sources)
 
-            decoded_mean_latents = self.model.decoder(encoding_mean)
+            decoded_mean_latents = self.model.decode(encoding_mean)
 
             if (
                 self.trainer.datamodule.hparams.synth_source == "uniform"

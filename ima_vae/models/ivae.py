@@ -79,6 +79,7 @@ class iVAE(nn.Module):
     ):
         # decoder params
         self.decoder_var = decoder_var * torch.ones(1, dtype=torch.float64).to(device)
+        self.gt_decoder = None
 
         if dataset == "synth":
             self.encoder, self.decoder = nets.get_synth_models(
@@ -167,7 +168,7 @@ class iVAE(nn.Module):
 
         return mu, log_var, cholesky_factors
 
-    def _encode(self, x):
+    def encode(self, x):
         enc_mean, enc_logvar, enc_cholesky = self._encoder_params(x)
 
         if self.posterior.diag:
@@ -189,15 +190,20 @@ class iVAE(nn.Module):
 
         return enc_logvar, enc_mean, latents, log_qz_xu
 
+    def decode(self, z):
+        dec = self.decoder if self.gt_decoder is None else self.gt_decoder
+
+        return dec(z)
+
     def forward(self, x):
         """
 
         :param x: observations
         :return:
         """
-        enc_logvar, enc_mean, latents, log_qz_xu = self._encode(x)
+        enc_logvar, enc_mean, latents, log_qz_xu = self.encode(x)
 
-        reconstructions = self.decoder(latents)
+        reconstructions = self.decode(latents)
         return enc_mean, enc_logvar, latents, reconstructions, log_qz_xu
 
     def neg_elbo(
