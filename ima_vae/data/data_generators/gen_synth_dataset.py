@@ -273,6 +273,7 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
     else:
         raise ValueError
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     for l in range(nlayers):
         mixing_matrix = (
             ortho_group.rvs(num_dim) if orthog is True else generateUniformMat(num_dim)
@@ -281,13 +282,11 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
         # create the components for the torch mixing
         layer = nn.Linear(num_dim, num_dim, bias=False)
         layer.weight = nn.Parameter(
-            torch.from_numpy(mixing_matrix.astype(np.float32)).to(
-                "cuda" if torch.cuda.is_available() else "cpu"
-            ),
+            torch.from_numpy(mixing_matrix.astype(np.float32)).to(device),
             requires_grad=False,
         )
         torch_mixing.append(layer)
-        torch_mixing.append(torch_act)
+        torch_mixing.append(torch_act.to(device))
 
         # Apply non-linearity
         obs = act(obs)
