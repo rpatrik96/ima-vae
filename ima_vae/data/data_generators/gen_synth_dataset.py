@@ -205,6 +205,51 @@ def non_stationary_data(
     return labels, obs, sources
 
 
+import torch.nn as nn
+from torch.nn import Module
+
+from torch import Tensor
+
+
+class LeakySoftPlus(Module):
+    r"""Applies the element-wise function:
+
+    .. math::
+        \text{LeakySoftPlus}(x) = \text{negative\_slope}*x + (1-\text{negative\_slope}) * \log(1+\exp(x))
+
+
+    Args:
+        alpha: Controls the angle of the negative slope. Default: 2e-1
+
+
+    Shape:
+        - Input: :math:`(*)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(*)`, same shape as the input
+
+
+    Examples::
+
+        >>> m = LeakySoftPlus(0.1)
+        >>> input = torch.randn(2)
+        >>> output = m(input)
+    """
+    __constants__ = ["alpha"]
+    alpha: float
+
+    def __init__(
+        self,
+        alpha: float = 2e-1,
+    ) -> None:
+        super().__init__()
+        self.alpha = alpha
+
+    def forward(self, input: Tensor) -> Tensor:
+        return self.alpha * input + (1.0 - self.alpha) * torch.logaddexp(
+            input, torch.zeros_like(input)
+        )
+
+
 def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
     mixing = None
     unmixing = None
