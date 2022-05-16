@@ -255,21 +255,43 @@ def gen_mlp(neg_slope, nlayers, nonlin, num_dim, obs, orthog, sources):
     unmixing = None
     obs = np.array(obs)
     sources = np.array(sources)
+    torch_mixing = []
+
+    # Apply non-linearity
+    if nonlin == "lrelu":
+        act = lambda x: leaky_ReLU(x, neg_slope)
+        torch_act = torch.nn.LeakyReLU(negative_slope=neg_slope)
+    elif nonlin == "sigmoid":
+        act = lambda x: sigmoidAct(x)
+        torch_act = torch.nn.Sigmoid()
+    elif nonlin == "smooth_lrelu":
+        torch_act = LeakySoftPlus(neg_slope)
+        act = lambda x: smooth_leaky_relu(x, neg_slope)
+    else:
+        raise ValueError
+
     for l in range(nlayers):
-        if orthog:
-            mixing_matrix = ortho_group.rvs(num_dim)
-        else:
-            mixing_matrix = generateUniformMat(num_dim)
+        mixing_matrix = (
+            ortho_group.rvs(num_dim) if orthog is True else generateUniformMat(num_dim)
+        )
+
+        # create the components for the torch mixing
+        layer = torch.nn.Linear(num_dim, num_dim, bias=False)
+        layer.weight = torch.nn.Parameter(
+            torch.from_numpy(mixing_matrix.astype(np.float32)).to(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            ),
+            requires_grad=False,
+        )
+        torch_mixing.append(layer)
+        torch_mixing.append(torch_act)
 
         # Apply non-linearity
-        if nonlin == "lrelu":
-            obs = leaky_ReLU(obs, neg_slope)
-        elif nonlin == "sigmoid":
-            obs = sigmoidAct(obs)
-        elif nonlin == "smooth_lrelu":
-            obs = smooth_leaky_relu(obs, neg_slope)
+        obs = act(obs)
         # Apply mixing:
         obs = np.dot(obs, mixing_matrix)
+
+    mixing = nn.Sequential(*torch_mixing)
     return mixing, obs, sources, unmixing
 
 
