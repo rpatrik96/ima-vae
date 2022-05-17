@@ -59,16 +59,18 @@ def sweep2df(sweep_runs, filename, save=False, load=False):
                     neg_elbo_history.min()[1],
                 )
 
-                mse_sources_mean_decoded_sources = run.history(
-                    keys=[f"Metrics/val/mse_sources_mean_decoded_sources"]
-                ).iloc[int(min_neg_elbo_step)][
-                    "Metrics/val/mse_sources_mean_decoded_sources"
-                ]
-                mse_obs_decoded_mean_latents = run.history(
-                    keys=[f"Metrics/val/mse_obs_decoded_mean_latents"]
-                ).iloc[int(min_neg_elbo_step)][
-                    "Metrics/val/mse_obs_decoded_mean_latents"
-                ]
+                key = f"Metrics/val/mse_sources_mean_decoded_sources"
+                mse_sources_mean_decoded_sources = (
+                    -1
+                    if key not in summary.keys()
+                    else run.history(keys=[key]).iloc[int(min_neg_elbo_step)][key]
+                )
+                key = f"Metrics/val/mse_obs_decoded_mean_latents"
+                mse_obs_decoded_mean_latents = (
+                    -1
+                    if key not in summary.keys()
+                    else run.history(keys=[key]).iloc[int(min_neg_elbo_step)][key]
+                )
 
                 sigmas_history = run.history(
                     keys=[
@@ -172,16 +174,16 @@ def sweep2df(sweep_runs, filename, save=False, load=False):
     return runs_df
 
 
-def format_violin(vp, facecolor="#1A85FF"):
+def format_violin(vp, facecolor=BLUE):
     for el in vp["bodies"]:
         el.set_facecolor(facecolor)
         el.set_edgecolor("black")
-        el.set_linewidth(1.5)
+        el.set_linewidth(0.75)
         el.set_alpha(0.9)
     for pn in ["cbars", "cmins", "cmaxes", "cmedians"]:
         vp_ = vp[pn]
         vp_.set_edgecolor("black")
-        vp_.set_linewidth(1)
+        vp_.set_linewidth(0.5)
 
 
 import matplotlib.pyplot as plt
@@ -194,7 +196,7 @@ def create_violinplot(groups, xlabel, ylabel, xticklabels, filename=None, ax=Non
         ax = ax.twinx()
 
     vp = ax.violinplot(groups, showmedians=True)
-    format_violin(vp, "#1A85FF")
+    format_violin(vp, BLUE)
 
     ax.set_xticklabels(xticklabels)
     # ax.set_xticks(xticks)
