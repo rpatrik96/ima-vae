@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from os.path import isfile
 
+BLUE = "#1A85FF"
+RED = "#D0021B"
+
 
 def sweep2df(sweep_runs, filename, save=False, load=False):
     if load is True and isfile(filename) is True:
