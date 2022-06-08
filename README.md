@@ -4,17 +4,16 @@
  
 # Embrace the Gap: VAEs perform Independent Mechanism Analysis   
 
-[//]: # ([![Paper]&#40;http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg&#41;]&#40;https://www.nature.com/articles/nature14539&#41;)
+[//]: # ([![Paper]&#40;http://img.shields.io/badge/paper-arxiv.2206.02416-B31B1B.svg&#41;]&#40;https://arxiv.org/abs/2206.02416&#41;)
 
 [//]: # ([![Conference]&#40;http://img.shields.io/badge/NeurIPS-2019-4b44ce.svg&#41;]&#40;https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018&#41;)
 
 [//]: # ([![Conference]&#40;http://img.shields.io/badge/ICLR-2019-4b44ce.svg&#41;]&#40;https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018&#41;)
 
 [//]: # ([![Conference]&#40;http://img.shields.io/badge/AnyConference-year-4b44ce.svg&#41;]&#40;https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018&#41;  )
-<!--
-ARXIV   
-[![Paper](http://img.shields.io/badge/arxiv-math.co:1480.1111-B31B1B.svg)](https://www.nature.com/articles/nature14539)
--->
+
+[![Paper](http://img.shields.io/badge/arxiv-stat.ML:2206.02416-B31B1B.svg)](https://arxiv.org/abs/2206.02416)
+
 ![CI testing](https://github.com/rpatrik96/ima-vae/workflows/CI%20testing/badge.svg?branch=master&event=push)
 [![DOI](https://zenodo.org/badge/431811003.svg)](https://zenodo.org/badge/latestdoi/431811003)
 
