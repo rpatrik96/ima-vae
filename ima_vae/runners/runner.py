@@ -53,10 +53,12 @@ class IMAModule(pl.LightningModule):
         encoder_extra_layers=0,
         encoder_extra_width=0,
         fix_gt_decoder=False,
+        learn_dec_var: bool = False,
         **kwargs,
     ):
         """
 
+        :param learn_dec_var: learnable decoder variance
         :param fix_gt_decoder:
         :param encoder_extra_layers:
         :param encoder_extra_width:
@@ -109,6 +111,7 @@ class IMAModule(pl.LightningModule):
             analytic_kl=analytic_kl,
             encoder_extra_layers=encoder_extra_layers,
             encoder_extra_width=encoder_extra_width,
+            learn_dec_var=learn_dec_var,
         )
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:

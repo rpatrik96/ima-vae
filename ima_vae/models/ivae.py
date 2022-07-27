@@ -35,6 +35,7 @@ class iVAE(nn.Module):
         analytic_kl=False,
         encoder_extra_layers=0,
         encoder_extra_width=0,
+        learn_dec_var: bool = False,
     ):
         super().__init__()
 
@@ -49,6 +50,7 @@ class iVAE(nn.Module):
         self.beta = beta
         self.hidden_dim = self.latent_dim * hidden_latent_factor
         self.analytic_kl = analytic_kl
+        self.learn_dec_var = learn_dec_var
 
         self._setup_distributions(
             likelihood,
@@ -78,7 +80,10 @@ class iVAE(nn.Module):
         encoder_extra_width=0,
     ):
         # decoder params
-        self.decoder_var = decoder_var * torch.ones(1, dtype=torch.float64).to(device)
+        self.decoder_var = nn.Parameter(
+            decoder_var * torch.ones(1, dtype=torch.float64).to(device),
+            requires_grad=self.learn_dec_var,
+        )
         self.gt_decoder = None
 
         if dataset == "synth":
