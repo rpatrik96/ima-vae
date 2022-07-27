@@ -268,6 +268,14 @@ class IMAModule(pl.LightningModule):
                 on_step=False,
             )
 
+            if self.hparams.learn_dec_var is True:
+                self.log(
+                    f"{panel_name}/decoder_var",
+                    self.model.decoder_var.data,
+                    on_epoch=True,
+                    on_step=False,
+                )
+
         # self.val_mcc.update(sources=sources,estimated_factors=latent)
 
         self._log_cima(latent, panel_name)
