@@ -65,6 +65,11 @@ class MyLightningCLI(LightningCLI):
             # required as the parser cannot parse the "-" symbol
             self.trainer.logger.__dict__["_wandb_init"]["entity"] = "ima-vae"
 
+            if self.config[self.subcommand].model.offline is True:
+                self.trainer.logger.__dict__["_wandb_init"]["mode"] = "offline"
+            else:
+                self.trainer.logger.__dict__["_wandb_init"]["mode"] = "online"
+
             # todo: maybe set run in the CLI to false and call watch before?
             self.trainer.logger.watch(self.model, log="all", log_freq=250)
 

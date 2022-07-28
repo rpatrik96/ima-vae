@@ -11,6 +11,8 @@ from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
 from pdb import set_trace
+from os.path import dirname
+import subprocess
 
 import ima_vae.metrics
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
@@ -54,10 +56,12 @@ class IMAModule(pl.LightningModule):
         encoder_extra_width=0,
         fix_gt_decoder=False,
         learn_dec_var: bool = False,
+        offline: bool = False,
         **kwargs,
     ):
         """
 
+        :param offline: offline W&B run (sync at the end)
         :param learn_dec_var: learnable decoder variance
         :param fix_gt_decoder:
         :param encoder_extra_layers:
@@ -600,3 +604,14 @@ class IMAModule(pl.LightningModule):
                 table.add_data(*imgs)
 
             wandb_logger.log({f"{panel_name}/latents": table})
+
+    def on_fit_end(self) -> None:
+        if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
+            if self.hparams.offline is True:
+                # Syncing W&B at the end
+                # 1. save sync dir (after marking a run finished, the W&B object changes (is teared down?)
+                sync_dir = dirname(self.logger.experiment.dir)
+                # 2. mark run complete
+                wandb.finish()
+                # 3. call the sync command for the run directory
+                subprocess.check_call(["wandb", "sync", sync_dir])
