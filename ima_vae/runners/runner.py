@@ -231,7 +231,13 @@ class IMAModule(pl.LightningModule):
 
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
-        self._log_mcc(latent, sources, panel_name, spearman=True, cdf=True)
+        self._log_mcc(
+            latent,
+            sources,
+            panel_name,
+            spearman=True,
+            cdf=True if self.hparams.dataset != "image" else False,
+        )
 
         with torch.no_grad():
             _, mean_decoded_sources, _, _ = self.model.encode(
