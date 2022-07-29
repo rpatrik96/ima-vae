@@ -57,10 +57,12 @@ class IMAModule(pl.LightningModule):
         fix_gt_decoder=False,
         learn_dec_var: bool = False,
         offline: bool = False,
+        dec_var_mle=False,
         **kwargs,
     ):
         """
 
+        :param dec_var_mle: setting decoder var according to MLE estimate (Eq * in http://arxiv.org/abs/2006.13202)
         :param offline: offline W&B run (sync at the end)
         :param learn_dec_var: learnable decoder variance
         :param fix_gt_decoder:
@@ -277,8 +279,10 @@ class IMAModule(pl.LightningModule):
                 on_epoch=True,
                 on_step=False,
             )
+            if self.hparams.dec_var_mle is True:
+                self.model.decoder_var.data = (obs - decoded_mean_latents).pow(2).mean()
 
-            if self.hparams.learn_dec_var is True:
+            if self.hparams.learn_dec_var is True or self.hparams.dec_var_mle is True:
                 self.log(
                     f"{panel_name}/decoder_var",
                     self.model.decoder_var.data,

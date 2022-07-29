@@ -38,6 +38,8 @@ parameters:
   model.n_layers:
     value: 2
   model.learn_dec_var:
+    value: false
+  model.dec_var_mle:
     value: true
   model.offline:
     value: true
