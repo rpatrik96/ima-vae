@@ -35,6 +35,8 @@ parameters:
     values: [ 42, 64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645]
   model.offline:
     value: true
+  model.learn_dec_var:
+    value: true
 
 
 
