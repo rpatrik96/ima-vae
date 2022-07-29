@@ -16,7 +16,7 @@ metric:
   name: Metrics/val/mcc
 parameters:
   model.decoder_var:
-    value:  1e-5
+    value: 1e-5
   seed_everything:
     values: [ 42,64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645, 54, 8864, 5454, 697, 2 , 7, 69, 78695, 2022, 874]
   trainer.gpus:
