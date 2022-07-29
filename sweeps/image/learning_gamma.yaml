@@ -26,7 +26,7 @@ parameters:
   model.prior:
     value: beta
   model.decoder_var:
-    values: [5e0, 2e0, 2e-1, 5e-1, 1e-1, 5e-2] #[1e1, 1e0, 1e-1, 1e-2, 1e-3]
+    value: 1e0
   model.fix_prior:
     value: false
   data.batch_size:
