@@ -80,10 +80,15 @@ class iVAE(nn.Module):
         encoder_extra_width=0,
     ):
         # decoder params
-        self.decoder_var = nn.Parameter(
-            decoder_var * torch.ones(1, dtype=torch.float64).to(device),
-            requires_grad=self.learn_dec_var,
-        )
+        if self.learn_dec_var is False:
+            self.decoder_var = decoder_var * torch.ones(1, dtype=torch.float64).to(
+                device
+            )
+        else:
+            self.decoder_var = nn.Parameter(
+                decoder_var * torch.ones(1, dtype=torch.float64).to(device),
+                requires_grad=self.learn_dec_var,
+            )
         self.gt_decoder = None
 
         if dataset == "synth":
