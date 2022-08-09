@@ -187,7 +187,9 @@ def load_sprites(
 
     path = join(
         sprites_dir,
-        filename := sprites_filename(n_obs, n_classes, projective, affine, hsv_change),
+        filename := sprites_filename(
+            n_obs, n_classes, projective, affine, hsv_change, seed=seed
+        ),
     )
 
     if not isdir(sprites_dir):
