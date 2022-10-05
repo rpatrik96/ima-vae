@@ -53,7 +53,7 @@ pre-commit install
  Next, navigate to the `ima-vae` directory and run `ima_vae/cli.py.   
 ```bash
  python3 ima_vae/cli.py fit --help
- python3 ima_vae/cli.py fit --config configs/trainer.yaml --config configs/synth/moebius/moebius.yaml --config configs/synth/moebius/2d.yaml --model.prior=beta
+ python3 ima_vae/cli.py fit --config configs/trainer.yaml --config configs/synth/moebius.yaml --config configs/synth/moebius/2d.yaml --model.prior=beta
 ```
 
 ### Hyperparameter optimization
