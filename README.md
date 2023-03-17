@@ -6,7 +6,7 @@
 
 [//]: # ([![Paper]&#40;http://img.shields.io/badge/paper-arxiv.2206.02416-B31B1B.svg&#41;]&#40;https://arxiv.org/abs/2206.02416&#41;)
 
-[//]: # ([![Conference]&#40;http://img.shields.io/badge/NeurIPS-2019-4b44ce.svg&#41;]&#40;https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018&#41;)
+[![Conference](http://img.shields.io/badge/NeurIPS-2022-4b44ce.svg)](https://openreview.net/forum?id=G4GpqX4bKAH)
 
 [//]: # ([![Conference]&#40;http://img.shields.io/badge/ICLR-2019-4b44ce.svg&#41;]&#40;https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018&#41;)
 
@@ -74,16 +74,14 @@ wandb agent <ID-comes-here> --count=<number of runs> # when used on a cluster, s
 ## Citation   
 
 ```
-
-@article{reizinger_embrace_2022,
-  doi = {10.48550/ARXIV.2206.02416},
-  url = {https://arxiv.org/abs/2206.02416},
-  author = {Reizinger, Patrik and Gresele, Luigi and Brady, Jack and von Kügelgen, Julius and Zietlow, Dominik and Schölkopf, Bernhard and Martius, Georg and Brendel, Wieland and Besserve, Michel},
-  keywords = {Machine Learning (stat.ML), Artificial Intelligence (cs.AI), Machine Learning (cs.LG), FOS: Computer and information sciences, FOS: Computer and information sciences},
-  title = {Embrace the Gap: VAEs Perform Independent Mechanism Analysis},
-  publisher = {arXiv},
-  year = {2022},
-  copyright = {arXiv.org perpetual, non-exclusive license}
+@inproceedings{
+ reizinger_embrace_2022,
+ title={Embrace the Gap: {VAE}s Perform Independent Mechanism Analysis},
+ author={Patrik Reizinger and Luigi Gresele and Jack Brady and Julius Von K{\"u}gelgen and Dominik Zietlow and Bernhard Sch{\"o}lkopf and Georg Martius and Wieland Brendel and Michel Besserve},
+ booktitle={Advances in Neural Information Processing Systems},
+ editor={Alice H. Oh and Alekh Agarwal and Danielle Belgrave and Kyunghyun Cho},
+ year={2022},
+ url={https://openreview.net/forum?id=G4GpqX4bKAH}
 }
 
 ```   
