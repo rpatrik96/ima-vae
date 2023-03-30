@@ -2,7 +2,6 @@ matplotlib~=3.4.3
 numpy~=1.21.2
 setuptools~=59.5.0
 torch~=1.10.2
-scikit-learn~=0.0
 scikit-learn~=1.0.1
 wandb~=0.12.10
 jax==0.2.21
