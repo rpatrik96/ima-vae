@@ -9,7 +9,6 @@ from ima_vae.utils import add_tags
 
 class MyLightningCLI(LightningCLI):
     def add_arguments_to_parser(self, parser):
-
         parser.add_argument(
             "--notes",
             type=str,
@@ -42,7 +41,6 @@ class MyLightningCLI(LightningCLI):
         parser.link_arguments("model.dataset", "data.dataset")
 
     def before_instantiate_classes(self) -> None:
-
         if self.config[self.subcommand].model.dataset == "image":
             nfactors = (
                 4

@@ -132,7 +132,6 @@ class LatentMetrics(object):
         self.variance_of_means = MeanMetric()
 
     def update(self, latent_stats: dict):
-
         for key, val in latent_stats.items():
             if "latent_mean_variance" in key:
                 self.variance_of_means.compute(val)
@@ -142,7 +141,6 @@ class LatentMetrics(object):
                 self.variances[key].update(val)
 
     def compute(self):
-
         means = []
         variances = []
         for mean, var in zip(self.means.values(), self.variances.values()):

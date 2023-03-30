@@ -134,7 +134,6 @@ class IMAModule(pl.LightningModule):
                         "mixing_linear_map_cima"
                     ] = cima_kl_diagonality(self.trainer.datamodule.linear_map)
                 else:
-
                     sources = next(iter(self.trainer.datamodule.train_dataloader()))[
                         -1
                     ].to(self.hparams.device)
@@ -183,7 +182,6 @@ class IMAModule(pl.LightningModule):
         continuous_factors: bool = True,
         train_split=0.8,
     ):
-
         pass
 
         """
@@ -256,7 +254,6 @@ class IMAModule(pl.LightningModule):
                 self.trainer.datamodule.hparams.synth_source == "uniform"
                 and self.hparams.exclude_uniform_boundary is True
             ):
-
                 source_min_filter = sources.min(1)[0] > -0.4
                 source_max_filter = sources.max(1)[0] < 0.4
                 source_interior_filter = source_min_filter & source_max_filter
@@ -298,7 +295,6 @@ class IMAModule(pl.LightningModule):
             self.current_epoch % 20 == 0
             or self.current_epoch == (self.trainer.max_epochs - 1)
         ) is True:
-
             # self._log_true_data_likelihood(obs, panel_name) #uses jax
             self._log_latents(latent, panel_name)
             self._log_reconstruction(obs, reconstruction, panel_name)
@@ -556,7 +552,6 @@ class IMAModule(pl.LightningModule):
         return true_data_likelihood
 
     def _log_amari_dist(self, obs, sources, panel_name, log=True):
-
         if (
             self.trainer.datamodule.mixing is not None
             and self.trainer.datamodule.unmixing is not None
@@ -583,13 +578,11 @@ class IMAModule(pl.LightningModule):
         return optimizer
 
     def _log_latents(self, latent, panel_name):
-
         if (
             self.logger is not None
             and self.hparams.log_latents is True
             and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
         ):
-
             wandb_logger = self.logger.experiment
             table = wandb.Table(
                 columns=["Idx"]

@@ -20,7 +20,6 @@ def l2_normalize(Amat, axis=0):
 
 
 def get_lin_mix(obs_dim, unit_det=False, col_norm=False):
-
     assert unit_det != col_norm
     rank = -1
     while rank != obs_dim:
