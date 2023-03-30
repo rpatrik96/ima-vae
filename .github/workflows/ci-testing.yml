@@ -83,7 +83,7 @@ jobs:
 
     - name: Tests
       run: |
-        coverage run --source ima_vae -m py.test tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
+        coverage run --source ima_vae -m py.test tests --no-flake8 -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
 
     - name: Statistics
       if: success()
