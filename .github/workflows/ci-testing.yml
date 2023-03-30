@@ -55,11 +55,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install --requirement requirements.txt --upgrade --quiet --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
         pip install --requirement ima/requirements.txt --quiet
         pip install --requirement tests/requirements.txt --quiet
         pip install --requirement spriteworld/requirements.txt --quiet
         pip install -e spriteworld --quiet
+        pip install --requirement requirements.txt --upgrade --quiet --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
 
         python --version
         pip --version
