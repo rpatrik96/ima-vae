@@ -53,6 +53,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-py${{ matrix.python-version }}-
 
+    # # https://stackoverflow.com/a/56340986/16912032 for the pytest-dependency fix
     - name: Install dependencies
       run: |
         pip install --requirement ima/requirements.txt --quiet
@@ -60,7 +61,9 @@ jobs:
         pip install --requirement spriteworld/requirements.txt --quiet
         pip install -e spriteworld --quiet
         pip install --requirement requirements.txt --upgrade --quiet --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
-
+        
+        pip install --upgrade pytest-dependency
+        
         python --version
         pip --version
         pip list
