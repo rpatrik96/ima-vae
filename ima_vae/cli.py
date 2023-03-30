@@ -9,7 +9,6 @@ from ima_vae.utils import add_tags
 
 class MyLightningCLI(LightningCLI):
     def add_arguments_to_parser(self, parser):
-
         parser.add_argument(
             "--notes",
             type=str,
@@ -42,7 +41,6 @@ class MyLightningCLI(LightningCLI):
         parser.link_arguments("model.dataset", "data.dataset")
 
     def before_instantiate_classes(self) -> None:
-
         if self.config[self.subcommand].model.dataset == "image":
             nfactors = (
                 4
@@ -64,6 +62,11 @@ class MyLightningCLI(LightningCLI):
         if isinstance(self.trainer.logger, WandbLogger) is True:
             # required as the parser cannot parse the "-" symbol
             self.trainer.logger.__dict__["_wandb_init"]["entity"] = "ima-vae"
+
+            if self.config[self.subcommand].model.offline is True:
+                self.trainer.logger.__dict__["_wandb_init"]["mode"] = "offline"
+            else:
+                self.trainer.logger.__dict__["_wandb_init"]["mode"] = "online"
 
             # todo: maybe set run in the CLI to false and call watch before?
             self.trainer.logger.watch(self.model, log="all", log_freq=250)

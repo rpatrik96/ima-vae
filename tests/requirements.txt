@@ -3,8 +3,8 @@ codecov>=2.1
 pytest>=3.0.5
 pytest-cov
 pytest-flake8
-flake8
+flake8~=4.0.1
 check-manifest
 twine==1.13.0
 lightning-bolts~=0.4.0
-black
+black~=23.3.0

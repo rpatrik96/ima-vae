@@ -157,7 +157,6 @@ def calc_jacobian(model: nn.Module, latents: torch.Tensor) -> torch.Tensor:
     in_training: bool = model.training
     model.eval()  # otherwise we will get 0 gradients
     with torch.set_grad_enabled(True):
-
         output_vars = model(input_vars).flatten(1)
 
         for i in range(output_vars.shape[1]):

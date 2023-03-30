@@ -35,6 +35,7 @@ class iVAE(nn.Module):
         analytic_kl=False,
         encoder_extra_layers=0,
         encoder_extra_width=0,
+        learn_dec_var: bool = False,
     ):
         super().__init__()
 
@@ -49,6 +50,7 @@ class iVAE(nn.Module):
         self.beta = beta
         self.hidden_dim = self.latent_dim * hidden_latent_factor
         self.analytic_kl = analytic_kl
+        self.learn_dec_var = learn_dec_var
 
         self._setup_distributions(
             likelihood,
@@ -78,7 +80,15 @@ class iVAE(nn.Module):
         encoder_extra_width=0,
     ):
         # decoder params
-        self.decoder_var = decoder_var * torch.ones(1, dtype=torch.float64).to(device)
+        if self.learn_dec_var is False:
+            self.decoder_var = decoder_var * torch.ones(1, dtype=torch.float64).to(
+                device
+            )
+        else:
+            self.decoder_var = nn.Parameter(
+                decoder_var * torch.ones(1, dtype=torch.float64).to(device),
+                requires_grad=self.learn_dec_var,
+            )
         self.gt_decoder = None
 
         if dataset == "synth":
@@ -234,7 +244,6 @@ class iVAE(nn.Module):
             and self.prior.name == "gaussian"
             and self.posterior.diag is True
         ):
-
             if self.fix_prior is True:
                 # source: https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Kullback%E2%80%93Leibler_divergence
                 # using that prior mean is 0
@@ -250,7 +259,6 @@ class iVAE(nn.Module):
                     + self.latent_dim / 2
                 )
             else:
-
                 if mean.shape != latents.shape:
                     mean = mean * torch.ones_like(latents)
                 if var.shape != latents.shape:
@@ -295,7 +303,6 @@ class iVAE(nn.Module):
             mean, var = self.prior_mean, self.prior_var
 
         else:
-
             if self.fix_prior is False:
                 prior_params = self.conditioner(u)
                 prior_mean = prior_params[:, : self.latent_dim]
@@ -343,7 +350,6 @@ class iVAE(nn.Module):
         return log_px_z
 
     def _latent_statistics(self, encoding, enc_variance) -> dict:
-
         latent_variance = enc_variance.mean(0)
         latent_mean = encoding.mean(0)
         latent_stat = {

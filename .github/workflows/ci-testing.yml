@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.8]
+        python-version: [3.9]
 
     # Timeout: https://stackoverflow.com/a/59076067/4521646
     timeout-minutes: 35
@@ -53,14 +53,17 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-py${{ matrix.python-version }}-
 
+    # # https://stackoverflow.com/a/56340986/16912032 for the pytest-dependency fix
     - name: Install dependencies
       run: |
-        pip install --requirement requirements.txt --upgrade --quiet --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
         pip install --requirement ima/requirements.txt --quiet
         pip install --requirement tests/requirements.txt --quiet
         pip install --requirement spriteworld/requirements.txt --quiet
         pip install -e spriteworld --quiet
-
+        pip install --requirement requirements.txt --upgrade --quiet --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
+        
+        pip install --upgrade pytest-dependency
+        
         python --version
         pip --version
         pip list
@@ -80,7 +83,7 @@ jobs:
 
     - name: Tests
       run: |
-        coverage run --source ima_vae -m py.test tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
+        coverage run --source ima_vae -m pytest tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
 
     - name: Statistics
       if: success()

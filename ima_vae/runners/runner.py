@@ -11,6 +11,8 @@ from jax import jacfwd
 from jax import numpy as jnp
 from torch.autograd.functional import jacobian
 from pdb import set_trace
+from os.path import dirname
+import subprocess
 
 import ima_vae.metrics
 from ima.ima.metrics import jacobian_amari_distance, observed_data_likelihood
@@ -53,10 +55,16 @@ class IMAModule(pl.LightningModule):
         encoder_extra_layers=0,
         encoder_extra_width=0,
         fix_gt_decoder=False,
+        learn_dec_var: bool = False,
+        offline: bool = False,
+        dec_var_mle=False,
         **kwargs,
     ):
         """
 
+        :param dec_var_mle: setting decoder var according to MLE estimate (Eq * in http://arxiv.org/abs/2006.13202)
+        :param offline: offline W&B run (sync at the end)
+        :param learn_dec_var: learnable decoder variance
         :param fix_gt_decoder:
         :param encoder_extra_layers:
         :param encoder_extra_width:
@@ -109,6 +117,7 @@ class IMAModule(pl.LightningModule):
             analytic_kl=analytic_kl,
             encoder_extra_layers=encoder_extra_layers,
             encoder_extra_width=encoder_extra_width,
+            learn_dec_var=learn_dec_var,
         )
 
         if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
@@ -125,7 +134,6 @@ class IMAModule(pl.LightningModule):
                         "mixing_linear_map_cima"
                     ] = cima_kl_diagonality(self.trainer.datamodule.linear_map)
                 else:
-
                     sources = next(iter(self.trainer.datamodule.train_dataloader()))[
                         -1
                     ].to(self.hparams.device)
@@ -174,7 +182,6 @@ class IMAModule(pl.LightningModule):
         continuous_factors: bool = True,
         train_split=0.8,
     ):
-
         pass
 
         """
@@ -224,7 +231,13 @@ class IMAModule(pl.LightningModule):
 
         panel_name = "Metrics/val"
         self._log_metrics(kl_loss, neg_elbo, rec_loss, latent_stat, panel_name)
-        self._log_mcc(latent, sources, panel_name, spearman=True, cdf=True)
+        self._log_mcc(
+            latent,
+            sources,
+            panel_name,
+            spearman=True,
+            cdf=True if self.hparams.dataset != "image" else False,
+        )
 
         with torch.no_grad():
             _, mean_decoded_sources, _, _ = self.model.encode(
@@ -241,7 +254,6 @@ class IMAModule(pl.LightningModule):
                 self.trainer.datamodule.hparams.synth_source == "uniform"
                 and self.hparams.exclude_uniform_boundary is True
             ):
-
                 source_min_filter = sources.min(1)[0] > -0.4
                 source_max_filter = sources.max(1)[0] < 0.4
                 source_interior_filter = source_min_filter & source_max_filter
@@ -264,6 +276,16 @@ class IMAModule(pl.LightningModule):
                 on_epoch=True,
                 on_step=False,
             )
+            if self.hparams.dec_var_mle is True:
+                self.model.decoder_var.data = (obs - decoded_mean_latents).pow(2).mean()
+
+            if self.hparams.learn_dec_var is True or self.hparams.dec_var_mle is True:
+                self.log(
+                    f"{panel_name}/decoder_var",
+                    self.model.decoder_var.data,
+                    on_epoch=True,
+                    on_step=False,
+                )
 
         # self.val_mcc.update(sources=sources,estimated_factors=latent)
 
@@ -273,7 +295,6 @@ class IMAModule(pl.LightningModule):
             self.current_epoch % 20 == 0
             or self.current_epoch == (self.trainer.max_epochs - 1)
         ) is True:
-
             # self._log_true_data_likelihood(obs, panel_name) #uses jax
             self._log_latents(latent, panel_name)
             self._log_reconstruction(obs, reconstruction, panel_name)
@@ -531,7 +552,6 @@ class IMAModule(pl.LightningModule):
         return true_data_likelihood
 
     def _log_amari_dist(self, obs, sources, panel_name, log=True):
-
         if (
             self.trainer.datamodule.mixing is not None
             and self.trainer.datamodule.unmixing is not None
@@ -558,13 +578,11 @@ class IMAModule(pl.LightningModule):
         return optimizer
 
     def _log_latents(self, latent, panel_name):
-
         if (
             self.logger is not None
             and self.hparams.log_latents is True
             and isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True
         ):
-
             wandb_logger = self.logger.experiment
             table = wandb.Table(
                 columns=["Idx"]
@@ -589,3 +607,14 @@ class IMAModule(pl.LightningModule):
                 table.add_data(*imgs)
 
             wandb_logger.log({f"{panel_name}/latents": table})
+
+    def on_fit_end(self) -> None:
+        if isinstance(self.logger, pl.loggers.wandb.WandbLogger) is True:
+            if self.hparams.offline is True:
+                # Syncing W&B at the end
+                # 1. save sync dir (after marking a run finished, the W&B object changes (is teared down?)
+                sync_dir = dirname(self.logger.experiment.dir)
+                # 2. mark run complete
+                wandb.finish()
+                # 3. call the sync command for the run directory
+                subprocess.check_call(["wandb", "sync", sync_dir])

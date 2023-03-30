@@ -13,14 +13,12 @@ def sweep2df(sweep_runs, filename, save=False, load=False):
     data = []
     max_dim = -1
     for run in sweep_runs:
-
         # .summary contains the output keys/values for metrics like accuracy.
         #  We call ._json_dict to omit large files
         summary = run.summary._json_dict
 
         if run.state == "finished":
             try:
-
                 # .config contains the hyperparameters.
                 #  We remove special values that start with _.
                 config = {k: v for k, v in run.config.items() if not k.startswith("_")}
@@ -225,7 +223,6 @@ def violin_by_prior(
     figsize=(8, 6),
     log=False,
 ):
-
     plt.figure(figsize=figsize)
     vp_gauss = plt.violinplot(
         [np.log10(i) if log is True else i for i in gauss_data], positions=xticks

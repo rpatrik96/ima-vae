@@ -1,0 +1,42 @@
+command:
+  - ${env}
+  - python3
+  - ima_vae/cli.py
+  - fit
+  - "--config"
+  - "configs/trainer.yaml"
+  - "--config"
+  - "configs/image/dsprites.yaml"
+  - ${args}
+entity: ima-vae
+project: dsprites
+method: grid
+metric:
+  goal: maximize
+  name: Metrics/val/mcc
+parameters:
+  trainer.max_epochs:
+    value: 800
+  trainer.limit_val_batches:
+    value: 1
+  trainer.check_val_every_n_epoch:
+    value: 25
+  model.lr:
+    value: 1e-5 #5e-4
+  model.prior:
+    value: beta
+  model.decoder_var:
+    value: 1e0
+  model.fix_prior:
+    value: false
+  data.batch_size:
+    value: 512
+  seed_everything:
+    values: [ 42, 64, 982, 5748, 23567, 89, 1996, 654, 35684, 87645]
+  model.offline:
+    value: true
+  model.learn_dec_var:
+    value: true
+
+
+
